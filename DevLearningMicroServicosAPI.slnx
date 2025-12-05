@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/1- Presentation/">
+    <Project Path="DevLearning.CarrerAPI/DevLearning.CareerAPI.csproj" Id="0f1eb27c-dee6-4f24-82cc-71034bad6e9b" />
+    <Project Path="DevLearning.CategoryAPI/DevLearning.CategoryAPI.csproj" Id="30b0975e-1699-485b-bee0-ccdf400a882d" />
+    <Project Path="DevLearning.CourseAPI/DevLearning.CourseAPI.csproj" Id="88051f0c-9a57-4d5f-b13f-68f5551bae33" />
+    <Project Path="DevLearning.StudentAPPI/DevLearning.StudentAPI.csproj" Id="c9a5df34-1386-4d1b-a937-8bbcae4bfa44" />
+    <Project Path="WebApplication1/DevLearning.AuthorAPI.csproj" Id="1505ed85-1004-47a1-b641-4eb9e137d128" />
+  </Folder>
+  <Folder Name="/2- Domain/">
+    <Project Path="Domain/Domain.csproj" Id="c086c6a2-e4e8-4999-a8a6-6c0f14eb613f" />
+  </Folder>
+  <Folder Name="/3- Infrastructure/">
+    <Project Path="Infrastructure.Data/Infrastructure.Data.csproj" Id="a8c9f11d-6f3a-4751-bd20-2c6d8478ac3e" />
+  </Folder>
+</Solution>

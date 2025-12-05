@@ -1,0 +1,6 @@
+@DevLearningMicroServicosAPI_HostAddress = http://localhost:5070
+
+GET {{DevLearningMicroServicosAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

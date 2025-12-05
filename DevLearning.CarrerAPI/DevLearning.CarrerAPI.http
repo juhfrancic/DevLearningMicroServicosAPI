@@ -1,0 +1,6 @@
+@DevLearning.CarrerAPI_HostAddress = http://localhost:5093
+
+GET {{DevLearning.CarrerAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
