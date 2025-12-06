@@ -7,7 +7,7 @@ namespace Domain.Models.DTOs.Student
     {
         [Range(0, 100)]
         public byte? Progress { get; init; } = 0;
-        public FavoriteType Favorite { get; set; }
+        public FavoriteType Favorite { get; set; } = FavoriteType.No;
         public DateTime? StartDate { get; init; } = DateTime.Now;
     }
 }
