@@ -1,5 +1,4 @@
-﻿using DevLearning.API.Models;
-using DevLearning.StudentAPI.Services;
+﻿using DevLearning.StudentAPI.Services;
 using Domain.Models.DTOs.Student;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
