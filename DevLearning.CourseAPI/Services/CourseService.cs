@@ -1,5 +1,6 @@
 ﻿using DevLearning.CourseAPI.Repositories;
 using DevLearning.CourseAPI.Services.Interfaces;
+using Domain.Extensions;
 using Domain.Models;
 using Domain.Models.DTOs.Author;
 using Domain.Models.DTOs.Category;
@@ -19,46 +20,28 @@ public class CourseService(
     {
         try
         {
-            var authorClient = _httpClientFactory.CreateClient("Author");
-            var categoryClient = _httpClientFactory.CreateClient("Category");
+            //var authorClient = _httpClientFactory.CreateClient("Author");
+            //var categoryClient = _httpClientFactory.CreateClient("Category");
 
-            var verifyAuthor = await authorClient
-                .GetFromJsonAsync<AuthorResponseDTO>(course.AuthorId.ToString());
+            //var verifyAuthor = await authorClient
+            //    .GetFromJsonAsync<AuthorResponseDTO>(course.AuthorId.ToString());
 
-            var verifyCategory = await categoryClient
-                .GetFromJsonAsync<CategoryResponseDTO>(course.CategoryId.ToString());
+            //var verifyCategory = await categoryClient
+            //    .GetFromJsonAsync<CategoryResponseDTO>(course.CategoryId.ToString());
 
-            var verifyTitle = await _courseRepository
-                .GetOneCourseByTitleAsync(course.Title);
+            //var verifyTitle = await _courseRepository
+            //    .GetOneCourseByTitleAsync(course.Title);
 
-            if (verifyTitle is not null)
-                throw new Exception("Título de curso já existente!");
+            //if (verifyTitle is not null)
+            //    throw new Exception("Título de curso já existente!");
 
-            if (verifyAuthor is null)
-                throw new Exception("Autor inexistente!");
+            //if (verifyAuthor is null)
+            //    throw new Exception("Autor inexistente!");
 
-            if (verifyCategory is null)
-                throw new Exception("Categoria inexistente!");
+            //if (verifyCategory is null)
+            //    throw new Exception("Categoria inexistente!");
 
-            var newCourse = new Course(
-                Guid.NewGuid(),
-                course.Tag,
-                course.Title,
-                course.Summary,
-                course.Url,
-                course.Level,
-                course.DurationInMinutes,
-                DateTime.UtcNow,
-                DateTime.UtcNow,
-                true,
-                false,
-                false,
-                course.AuthorId,
-                course.CategoryId,
-                course.Tags
-                );
-
-            await _courseRepository.CreateCourseAsync(newCourse);
+            await _courseRepository.CreateCourseAsync(course.ToEntity());
 
         }
         catch (Exception ex)

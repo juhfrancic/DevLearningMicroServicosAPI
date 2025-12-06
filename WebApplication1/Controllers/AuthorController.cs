@@ -1,9 +1,6 @@
-﻿using DevLearning.API.Models;
-using DevLearning.API.Services.Interfaces;
-using DevLearning.AuthorAPI.Services;
+﻿using DevLearning.AuthorAPI.Services;
 using Domain.Models.DTOs.Author;
 using Domain.Models.Enums.Author;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DevLearning.AuthorAPI.Controllers;

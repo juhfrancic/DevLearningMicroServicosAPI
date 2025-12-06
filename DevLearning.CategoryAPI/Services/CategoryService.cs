@@ -1,6 +1,6 @@
-﻿using DevLearning.API.Models;
-using DevLearning.CategoryAPI.Repositories.Interfaces;
+﻿using DevLearning.CategoryAPI.Repositories.Interfaces;
 using DevLearning.CategoryAPI.Services.Interfaces;
+using Domain.Models;
 using Domain.Models.DTOs.Category;
 
 namespace DevLearning.CategoryAPI.Services

@@ -60,8 +60,8 @@ public class CourseController(
         }
     }
 
-    [HttpGet("get-by-title")]
-    public async Task<ActionResult<CourseResponseDTO>> GetOneCourseByTitleAsync([FromBody]CourseRequestTitleDTO course)
+    [HttpGet("{course}")]
+    public async Task<ActionResult<CourseResponseDTO>> GetOneCourseByTitleAsync(CourseRequestTitleDTO course)
     {
         try
         {
@@ -82,7 +82,7 @@ public class CourseController(
         }
     }
 
-    [HttpPost()]
+    [HttpPost]
     public async Task<ActionResult> CreateUserAsync(CourseRequestDTO course)
     {
         try
