@@ -1,8 +1,20 @@
+using DevLearning.AuthorAPI.Data;
+using DevLearning.AuthorAPI.Repositories;
+using DevLearning.AuthorAPI.Repositories.Interfaces;
+using DevLearning.AuthorAPI.Services;
+using DevLearning.AuthorAPI.Services.Interfaces;
+using Infrastructure.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.AddScoped<ConnectionDBAuthor>();
+
+builder.Services.AddScoped<AuthorRepository>();
+builder.Services.AddScoped<AuthorService>();
+
 
 var app = builder.Build();
 

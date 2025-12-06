@@ -1,5 +1,4 @@
-﻿using DevLearning.API.Models;
-using Domain.Models.DTOs.Author;
+﻿using Domain.Models.DTOs.Author;
 using Domain.Models.Enums.Author;
 
 namespace DevLearning.AuthorAPI.Services.Interfaces
