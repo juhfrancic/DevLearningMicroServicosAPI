@@ -1,6 +1,6 @@
 ﻿using Microsoft.Data.SqlClient;
 
-namespace Infrastructure.Data
+namespace Infrastructure.Data.SQL.Contexts
 {
     public class ConnectionDB
     {
