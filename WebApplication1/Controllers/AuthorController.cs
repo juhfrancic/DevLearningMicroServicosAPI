@@ -1,6 +1,4 @@
-﻿using DevLearning.API.Models;
-using DevLearning.API.Services.Interfaces;
-using DevLearning.AuthorAPI.Services;
+﻿using DevLearning.AuthorAPI.Services;
 using Domain.Models.DTOs.Author;
 using Domain.Models.Enums.Author;
 using Microsoft.AspNetCore.Http;
@@ -13,10 +11,12 @@ namespace DevLearning.AuthorAPI.Controllers
     public class AuthorController : ControllerBase
     {
         private AuthorService _authorService;
+        private ILogger<AuthorController> _logger;
 
-        public AuthorController(AuthorService authorService)
+        public AuthorController(AuthorService authorService, ILogger<AuthorController> logger)
         {
             _authorService = authorService;
+            _logger = logger;
         }
 
         //Listar todos os autores
@@ -30,6 +30,7 @@ namespace DevLearning.AuthorAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Erro ao listar autores.");
                 return StatusCode(404, new { error = $"Lista de autores não encontrada. {ex.Message}" });
             }
         }
@@ -48,6 +49,7 @@ namespace DevLearning.AuthorAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Erro ao listar autor.");
                 return StatusCode(404, new { error = $"Autor não encontrado. {ex.Message}" });
             }
            
@@ -64,6 +66,7 @@ namespace DevLearning.AuthorAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Erro ao criar autor.");
                 return StatusCode(400, new { error = $"Erro ao criar autor. {ex.Message}" });
             }
         }
@@ -80,6 +83,7 @@ namespace DevLearning.AuthorAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Erro ao atualizar autor.");
                 return StatusCode(400, new { error = $"Erro ao atualizar autor. {ex.Message}" });
             }
         }
@@ -95,6 +99,7 @@ namespace DevLearning.AuthorAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Erro ao atualizar autor.");
                 return StatusCode(400, new { error = $"Erro ao atualizar autor. {ex.Message}" });
             }
         }
@@ -110,6 +115,7 @@ namespace DevLearning.AuthorAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Erro ao alterar Type de autor.");
                 return StatusCode(400, new { error = $"Erro ao atualizar tipo do autor. {ex.Message}" });
             }
         }
@@ -118,12 +124,20 @@ namespace DevLearning.AuthorAPI.Controllers
         [HttpGet("{id}/courses")]
         public async Task<ActionResult> GetAuthorCourses(Guid id)
         {
-            var result = await _authorService.GetAuthorCoursesAsync(id);
+            try
+            {
+                var result = await _authorService.GetAuthorCoursesAsync(id);
 
-            if (result == null)
-                return NotFound("Autor não encontrado.");
+                if (result == null)
+                    return NotFound("Autor não encontrado.");
 
-            return Ok(result);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar autor autores.");
+                return StatusCode(400, new { error = $"Erro ao buscar ator. {ex.Message}" });
+            }
         }
     }
 }
