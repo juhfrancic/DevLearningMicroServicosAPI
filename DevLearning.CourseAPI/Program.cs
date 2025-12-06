@@ -8,6 +8,21 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+builder.Services.AddHttpClient("Author", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7001");
+});
+
+builder.Services.AddHttpClient("Category", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7021");
+});
+
+builder.Services.AddHttpClient("Student", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7263");
+});
+
 builder.Services.AddSingleton<MongoDbContext>();
 builder.Services.AddScoped<CourseRepository>();
 builder.Services.AddScoped<CourseService>();
