@@ -1,8 +1,10 @@
 ﻿using DevLearning.StudentAPI.Repositories;
 using DevLearning.StudentAPI.Services.Interfaces;
+using Domain.Extensions;
 using Domain.Models;
 using Domain.Models.DTOs.Course;
 using Domain.Models.DTOs.Student;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 
@@ -40,17 +42,17 @@ public class StudentService : IStudentService
             throw new Exception(ex.Message);
         }
     }
-    public async Task InsertStudentCourse(Guid studentId, Guid courseId, StudentRequestInsertCourseDTO studentCourse)
+    public async Task InsertStudentCourse(string studentId, string courseId, StudentRequestInsertCourseDTO studentCourse)
     {
         try
         {
-            if (await _studentRepository.GetStudentById(studentId) is null)
+            if (await _studentRepository.GetStudentById(ObjectId.Parse(studentId)) is null)
                 throw new Exception("Estudante não encontrado");
 
-            if (await _studentRepository.GetStudentCourse(studentId, courseId) is not null)
+            if (await _studentRepository.GetStudentCourse(ObjectId.Parse(studentId), ObjectId.Parse(courseId)) is not null)
                 throw new Exception("Estudante já está matriculado nesse curso");
 
-            await _studentRepository.InsertStudentCourse(studentId, courseId, studentCourse);
+            await _studentRepository.InsertStudentCourse(ObjectId.Parse(studentId), ObjectId.Parse(courseId), studentCourse);
         }
         catch (Exception ex)
         {
@@ -72,14 +74,12 @@ public class StudentService : IStudentService
     {
         try
         {
-            var student = await _studentRepository.GetStudentByEmail(email);
-
-            if (student is null)
-                throw new Exception("Estudante não encontrado");
+            var student = await _studentRepository.GetStudentByEmail(email)
+                ?? throw new Exception("Estudante não encontrado");
 
             return new StudentResponseDTO
             {
-                Id = student.Id,
+                Id = student.Id.ToString(),
                 Name = student.Name,
                 Email = student.Email,
                 Document = student.Document,
@@ -104,7 +104,7 @@ public class StudentService : IStudentService
 
             return new StudentResponseDTO
             {
-                Id = student.Id,
+                Id = student.Id.ToString(),
                 Name = student.Name,
                 Email = student.Email,
                 Document = student.Document,
@@ -122,14 +122,14 @@ public class StudentService : IStudentService
     {
         try
         {
-            var student = await _studentRepository.GetStudentById(Guid.Parse(id));
+            var student = await _studentRepository.GetStudentById(ObjectId.Parse(id));
 
             if (student is null)
                 throw new Exception("Estudante não encontrado");
 
             return new StudentResponseDTO
             {
-                Id = student.Id,
+                Id = student.Id.ToString(),
                 Name = student.Name,
                 Email = student.Email,
                 Document = student.Document,
@@ -147,7 +147,7 @@ public class StudentService : IStudentService
     {
         try
         {
-            var studentStorage = await _studentRepository.GetStudentById(Guid.Parse(id));
+            var studentStorage = await _studentRepository.GetStudentById(ObjectId.Parse(id));
             if (studentStorage is null)
                 throw new Exception("Estudante não encontrado");
             if (await _studentRepository.GetStudentByDocument(student.Document) is not null)
@@ -162,22 +162,22 @@ public class StudentService : IStudentService
                 student.Phone ?? studentStorage.Phone,
                 student.Birthdate ?? studentStorage.BirthDate.Value
                 );
-            await _studentRepository.UpdateStudent(newStudent, Guid.Parse(id));
+            await _studentRepository.UpdateStudent(newStudent, ObjectId.Parse(id));
         }
         catch (Exception ex)
         {
             throw new Exception(ex.Message);
         }
     }
-    public async Task UpdateStudentCourse(Guid studentId, Guid courseId, StudentCourseRequestUpdateDTO scDto)
+    public async Task UpdateStudentCourse(string studentId, string courseId, StudentCourseRequestUpdateDTO scDto)
     {
         try
         {
-            var student = await _studentRepository.GetStudentById(studentId);
+            var student = await _studentRepository.GetStudentById(ObjectId.Parse(studentId));
             if (student is null)
                 throw new Exception("Estudante não encontrado");
 
-            var studentCourse = await _studentRepository.GetStudentCourse(studentId, courseId);
+            var studentCourse = await _studentRepository.GetStudentCourse(ObjectId.Parse(studentId), ObjectId.Parse(courseId));
             if (studentCourse is null)
                 throw new Exception("Curso não encontrado para o estudante");
 
@@ -188,14 +188,14 @@ public class StudentService : IStudentService
                 throw new Exception("Progresso não pode ser maior que 100");
 
 
-            await _studentRepository.UpdateStudentCourse(studentId, courseId, scDto);
+            await _studentRepository.UpdateStudentCourse(ObjectId.Parse(studentId), ObjectId.Parse(courseId), scDto);
         }
         catch (Exception ex)
         {
             throw new Exception(ex.Message);
         }
     }
-    public async Task<CourseStudentDTO> GetStudentCourse(string studentId, string courseId)
+    public async Task<CourseResponseDTO> GetStudentCourse(string studentId, string courseId)
     {
         try
         {
@@ -208,11 +208,11 @@ public class StudentService : IStudentService
             if (student is null)
                 return null;
 
-            var course = client.GetFromJsonAsync<Course>($"api/course/id/{courseId}");
+            var course = await client.GetFromJsonAsync<Course>($"api/course/id/{courseId}");
 
-            var course1 = student.Courses.FirstOrDefault(c => c.CourseId == courseId);
+            //var course1 = student.Courses.FirstOrDefault(c => c.CourseId == courseId);
 
-            return course;
+            return course.ToDto();
         }
         catch (Exception ex)
         {

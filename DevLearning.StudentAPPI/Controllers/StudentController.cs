@@ -34,7 +34,7 @@ namespace DevLearning.StudentAPI.Controllers
         {
             try
             {
-                await _studentService.InsertStudentCourse(Guid.Parse(studentId), Guid.Parse(courseId), student);
+                await _studentService.InsertStudentCourse(studentId, courseId, student);
                 return StatusCode(201, new { message = "Estudante adicionado com sucesso no curso" });
             }
             catch (Exception ex)
@@ -130,7 +130,7 @@ namespace DevLearning.StudentAPI.Controllers
         {
             try
             {
-                await _studentService.UpdateStudentCourse(Guid.Parse(studentId), Guid.Parse(courseId), student);
+                await _studentService.UpdateStudentCourse(studentId, courseId, student);
                 return NoContent();
             }
             catch (Exception ex)

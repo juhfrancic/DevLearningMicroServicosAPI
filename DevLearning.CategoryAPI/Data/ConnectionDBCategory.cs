@@ -8,7 +8,7 @@ namespace DevLearning.CategoryAPI.Data
 
         public ConnectionDBCategory(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("SqlConnectionCategory");
+            _connectionString = configuration.GetConnectionString("SqlConnectionCategory")!;
         }
 
         public SqlConnection GetConnection()
