@@ -19,7 +19,9 @@ namespace Domain.Models
         public bool Free { get; private set; }
         public bool Featured { get; private set; }
         public Guid AuthorId { get; private set; }
+        public string AuthorName { get; private set; }
         public Guid CategoryId { get; private set; }
+        public string CategoryName { get; private set; }
         public string Tags { get; private set; }
 
         [JsonConstructor]

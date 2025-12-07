@@ -1,6 +1,8 @@
 ﻿using Domain.Models.DTOs.CareerItem;
 
-namespace Domain.Models.DTOs.Carrer
+namespace Domain.Models.DTOs.Carrer;
+
+public class CareerRequestDTO
 {
     public class CareerRequestDTO
     {
