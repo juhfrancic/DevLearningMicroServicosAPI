@@ -19,4 +19,12 @@ public class MongoDbContext
 
     public IMongoCollection<Course> Courses
         => _database.GetCollection<Course>("Courses");
+
+    public IMongoCollection<Career> Careers
+        => _database.GetCollection<Career>("Career");
+
+    public IMongoCollection<CareerItem> CareerItems
+        => _database.GetCollection<CareerItem>("CareerItem");
+
+
 }
