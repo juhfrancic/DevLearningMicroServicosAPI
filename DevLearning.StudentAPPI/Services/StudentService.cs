@@ -1,8 +1,11 @@
-﻿using DevLearning.CourseAPI.Repositories;
+﻿
 using DevLearning.StudentAPI.Repositories;
 using DevLearning.StudentAPI.Services.Interfaces;
 using Domain.Models;
+using Domain.Models.DTOs.Course;
 using Domain.Models.DTOs.Student;
+using MongoDB.Driver;
+using System.Net.Http;
 
 
 namespace DevLearning.StudentAPI.Services
@@ -10,11 +13,12 @@ namespace DevLearning.StudentAPI.Services
     public class StudentService : IStudentService
     {
         private StudentRepository _studentRepository;
-        private CourseRepository _courseRepository;
-        public StudentService(StudentRepository studentRepository, CourseRepository courseRepository)
+        private readonly IHttpClientFactory _httpClientFactory;
+
+        public StudentService(StudentRepository studentRepository, IHttpClientFactory httpClientFactory)
         {
             _studentRepository = studentRepository;
-            _courseRepository = courseRepository;
+            _httpClientFactory = httpClientFactory;
         }
         public async Task CreateStudent(StudentRequestDTO student)
         {
@@ -23,7 +27,14 @@ namespace DevLearning.StudentAPI.Services
                 var studentStorage = await _studentRepository.GetStudentByEmailAndDocument(student.Email, student.Document);
                 if(studentStorage is not null)
                     throw new Exception("Estudante com email ou documento já cadastrado.");
-                var newStudent = new Student(student.Name, student.Email, student.Document, student.Phone, student.Birthdate);
+                
+                var newStudent = new Student(
+                    student.Name, 
+                    student.Email,
+                    student.Document, 
+                    student.Phone, 
+                    student.Birthdate
+                );
                 await _studentRepository.CreateStudent(newStudent);
             }
             catch (Exception ex)
@@ -37,13 +48,10 @@ namespace DevLearning.StudentAPI.Services
             {
                 if (await _studentRepository.GetStudentById(studentId) is null)
                     throw new Exception("Estudante não encontrado");
-                var course = await _courseRepository.GetOneCourseByIdAsync(courseId);
-                if (course is null)
-                    throw new Exception("Curso não encontrado");
-                if (course.Active == false)
-                    throw new Exception("Curso inativo, não pode ocorrer mátricula");
+
                 if(await _studentRepository.GetStudentCourse(studentId, courseId) is not null)
                     throw new Exception("Estudante já está matriculado nesse curso");
+
                 await _studentRepository.InsertStudentCourse(studentId, courseId, studentCourse);
             }
             catch (Exception ex)
@@ -66,7 +74,21 @@ namespace DevLearning.StudentAPI.Services
         {
             try
             {
-                return await _studentRepository.GetStudentByEmail(email);
+                var student = await _studentRepository.GetStudentByEmail(email);
+
+                if (student is null)
+                    throw new Exception("Estudante não encontrado");
+
+                return new StudentResponseDTO
+                {
+                    Id = student.Id,
+                    Name = student.Name,
+                    Email = student.Email,
+                    Document = student.Document,
+                    Phone = student.Phone,
+                    BirthDate = student.BirthDate,
+                    CreateDate = student.CreateDate
+                };
             }
             catch (Exception ex)
             {
@@ -77,7 +99,21 @@ namespace DevLearning.StudentAPI.Services
         {
             try
             {
-                return await _studentRepository.GetStudentByDocument(document);
+                var student = await _studentRepository.GetStudentByDocument(document);
+
+                if(student is null)
+                    throw new Exception("Estudante não encontrado");
+
+                return new StudentResponseDTO
+                {
+                    Id = student.Id,
+                    Name = student.Name,
+                    Email = student.Email,
+                    Document = student.Document,
+                    Phone = student.Phone,
+                    BirthDate = student.BirthDate,
+                    CreateDate = student.CreateDate
+                };
             }
             catch (Exception ex)
             {
@@ -88,7 +124,21 @@ namespace DevLearning.StudentAPI.Services
         {
            try
             {
-                return await _studentRepository.GetStudentById(Guid.Parse(id));
+                var student =  await _studentRepository.GetStudentById(Guid.Parse(id));
+
+                if (student is null)
+                    throw new Exception("Estudante não encontrado");
+
+                return new StudentResponseDTO
+                {
+                    Id = student.Id,
+                    Name = student.Name,
+                    Email = student.Email,
+                    Document = student.Document,
+                    Phone = student.Phone,
+                    BirthDate = student.BirthDate,
+                    CreateDate = student.CreateDate
+                };
             }
             catch (Exception ex)
             {
@@ -108,11 +158,11 @@ namespace DevLearning.StudentAPI.Services
                     throw new Exception("O email informado já está cadastrado.");
 
                 var newStudent = new Student(
-                    student.Name is not null ? student.Name : studentStorage.Name,
-                    student.Email is not null ? student.Email : studentStorage.Email,
-                    student.Phone is not null ? student.Phone : studentStorage.Phone,
-                    student.Document is not null ? student.Document : studentStorage.Document,
-                    student.Birthdate is not null ? (DateTime)student.Birthdate : studentStorage.Birthdate
+                    student.Name ?? studentStorage.Name,
+                    student.Email ?? studentStorage.Email,
+                    student.Document ?? studentStorage.Document,
+                    student.Phone ?? studentStorage.Phone,
+                    student.Birthdate ?? studentStorage.BirthDate.Value
                     );
                 await _studentRepository.UpdateStudent(newStudent, Guid.Parse(id));
             }
@@ -121,16 +171,45 @@ namespace DevLearning.StudentAPI.Services
                 throw new Exception(ex.Message);
             }
         }
-        public async Task UpdateStudentCourse(Guid studentId, Guid courseId, StudentCourseRequestUpdateDTO studentCourse)
+        public async Task UpdateStudentCourse(Guid studentId, Guid courseId, StudentCourseRequestUpdateDTO scDto)
         {
             try
             {
-
-                if (await _studentRepository.GetStudentById(studentId) is null)
+                var student = await _studentRepository.GetStudentById(studentId);
+                if (student is null)
                     throw new Exception("Estudante não encontrado");
-                if (await _courseRepository.GetOneCourseByIdAsync(courseId) is null)
-                    throw new Exception("Curso não encontrado");
-                await _studentRepository.UpdateStudentCourse(studentId, courseId, studentCourse);
+
+                var studentCourse = await _studentRepository.GetStudentCourse(studentId, courseId);
+                if(studentCourse is null)
+                    throw new Exception("Curso não encontrado para o estudante");
+
+                if(scDto.Progress < 0)
+                    throw new Exception("Progresso não pode ser menor que 0");
+
+                if (scDto.Progress > 100)
+                    throw new Exception("Progresso não pode ser maior que 100");
+
+
+                await _studentRepository.UpdateStudentCourse(studentId, courseId, scDto);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+        public async Task<CourseStudentDTO> GetStudentCourse(Guid studentId, Guid courseId)
+        {
+            try
+            {
+                var allStudents = await _studentRepository.GetAllStudents();
+
+                var student = allStudents.FirstOrDefault(s => s.Id == studentId);
+                if (student is null)
+                    return null;
+
+                var course = student.Courses.FirstOrDefault(c => c.CourseId == courseId);
+
+                return course;
             }
             catch (Exception ex)
             {

@@ -1,18 +1,21 @@
 ﻿using Dapper;
 using Domain.Models;
+using Domain.Models.DTOs.CareerItem;
 using Domain.Models.DTOs.Carrer;
+using MongoDB.Bson;
 
 namespace DevLearning.CareerAPI.Repositories.Interfaces
 {
     public interface ICareerRepository
     {
-        Task<List<CareerResponseDTO>> GetAllCareersAsync();
-        Task<CareerResponseDTO?> GetCareerByIdAsync(Guid careerId);
+        Task<IEnumerable<Career>> GetAllCareersAsync();
+        Task<Career> GetCareerByIdAsync(ObjectId careerId);
         Task CreateCareerAsync(Career career);
-        Task<bool> DeleteCareerAsync(Guid careerId);
-        Task<bool> UpdateCareerAsync(Guid id, List<string> updates, DynamicParameters parameters);
-        Task<List<CareerWhitCareerItemResponseDTO>> GetAllCareerWithCareerItem();
-        Task<CareerWhitCareerItemResponseDTO> GetOneCareerWithCareerItem(Guid careerId);
-        Task<bool> GetCareerByTitleAsync(string Title);
+        Task UpdateCareerAsync(Career career);
+        Task UpdateActiveCareerAsync(ObjectId careerId);
+        Task AddItemCareerAsync(CareerItem careerItem);
+        Task<bool> RemoveItemCareerAsync(ObjectId careerId, ObjectId courseId);
+        Task RemoveItemByCourseAsync(ObjectId careerId,ObjectId courseId);
+        Task<List<ObjectId>> GetItemByCourseAsync(ObjectId courseId);
     }
 }

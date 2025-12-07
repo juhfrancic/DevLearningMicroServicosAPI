@@ -1,4 +1,5 @@
 ﻿using Dapper;
+using DevLearning.AuthorAPI.Data;
 using DevLearning.AuthorAPI.Repositories.Interfaces;
 using Domain.Models;
 using Domain.Models.DTOs.Author;
@@ -12,10 +13,12 @@ namespace DevLearning.AuthorAPI.Repositories
     public class AuthorRepository : IAuthorRepository
     {
         public readonly SqlConnection _connection;
+        public readonly ILogger<AuthorRepository> _logger;
 
-        public AuthorRepository(ConnectionDB connection)
+        public AuthorRepository(ConnectionDBAuthor connection, ILogger<AuthorRepository> logger)
         {
             _connection = connection.GetConnection();
+            _logger = logger;
         }
         public async Task<List<AuthorResponseDTO>> GetAllAuthorsAsync()
         {
@@ -29,6 +32,7 @@ namespace DevLearning.AuthorAPI.Repositories
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 throw new Exception("Erro ao obter autores: " + ex.Message);
             }
         }
@@ -42,6 +46,7 @@ namespace DevLearning.AuthorAPI.Repositories
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 throw new Exception("Erro ao obter autor: " + ex.Message);
             }
         }
@@ -56,6 +61,7 @@ namespace DevLearning.AuthorAPI.Repositories
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 throw new Exception("Erro ao obter autor: " + ex.Message);
             }
         }
@@ -70,6 +76,7 @@ namespace DevLearning.AuthorAPI.Repositories
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 throw new Exception("Erro ao criar autor: " + ex.Message);
             }
         }
@@ -139,6 +146,7 @@ namespace DevLearning.AuthorAPI.Repositories
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 throw new Exception("Erro ao atualizar autor: " + ex.Message);
             }
         }
@@ -165,6 +173,7 @@ namespace DevLearning.AuthorAPI.Repositories
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 throw new Exception("Erro ao atualizar autor: " + ex.Message);
             }
         }
@@ -172,12 +181,18 @@ namespace DevLearning.AuthorAPI.Repositories
         //verifica se o autor tem cursos associados antes de inativar
         public async Task<int> CountCoursesAsync(Guid id)
         {
-
+            try
+            {
                 var sql = "SELECT COUNT(1) FROM Course WHERE AuthorId = @Id";
                 var count = await _connection.ExecuteScalarAsync<int>(sql, new { Id = id });
-            
-                return count;
 
+                return count;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw new Exception("Erro ao verficiar se há cursos com autor.");
+            }
         }
         // Atualiza apenas o tipo do autor// Ativo (1) ou Inativo (2)
         public async Task UpdateAuthorTypeAsync(Guid id, AuthorType newType)
@@ -196,6 +211,7 @@ namespace DevLearning.AuthorAPI.Repositories
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 throw new Exception("Erro ao atualizar autor: " + ex.Message);
             }
         }
@@ -223,6 +239,7 @@ namespace DevLearning.AuthorAPI.Repositories
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex.Message);
                 throw new Exception("Erro ao listar autores e seus cursos: " + ex.Message);
             }
         }

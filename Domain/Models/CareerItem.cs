@@ -1,17 +1,17 @@
-﻿namespace Domain.Models
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+
+namespace Domain.Models
 {
     public class CareerItem
     {
-        public Guid CareerId { get; set; }
-        public Guid CourseId { get; set; }
-        public string Title { get; set; }
-        public string Description { get; set; }
-        public byte Order { get; set; }
+        public ObjectId CareerId { get; private set; }
+        public ObjectId CourseId { get; private set; }
+        public string Title { get; private set; }
+        public string Description { get; private set; }
+        public byte Order { get; private set; }
 
-
-        public CareerItem() { }
-
-        public CareerItem(Guid careerId, Guid courseId, string title, string description, byte order)
+        public CareerItem(ObjectId careerId, ObjectId courseId, string title, string description, byte order)
         {
             CareerId = careerId;
             CourseId = courseId;
@@ -20,8 +20,4 @@
             Order = order;
         }
     }
-
-
-
-
 }

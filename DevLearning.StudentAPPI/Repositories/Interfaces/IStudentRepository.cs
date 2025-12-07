@@ -1,18 +1,19 @@
 ﻿using Domain.Models;
+using Domain.Models.DTOs.Course;
 using Domain.Models.DTOs.Student;
+using MongoDB.Driver;
 
 namespace DevLearning.StudentAPI.Repositories.Interfaces
 {
     public interface IStudentRepository
     {
-        public Task CreateStudent(Student student);
-        public Task UpdateStudent(Student student, Guid id);
-        public Task<List<StudentResponseDTO>> GetAllStudents();
-        public Task<StudentResponseDTO> GetStudentByDocument(string document);
-        public Task<StudentResponseDTO> GetStudentByEmail(string email);
-        public Task<StudentResponseDTO> GetStudentById(Guid id);
-        public Task<int> GetCountStudentCourse(Guid courseId);
-        public Task InsertStudentCourse(Guid studentId, Guid courseId, StudentRequestInsertCourseDTO studentCourse);
-        public Task UpdateStudentCourse(Guid studentId, Guid courseId, StudentCourseRequestUpdateDTO studentCourse);
+        Task CreateStudent(Student student);
+        Task InsertStudentCourse(Guid studentId, Guid courseId, StudentRequestInsertCourseDTO studentCourse);
+        Task<List<StudentResponseDTO>> GetAllStudents();
+        Task<Student> GetStudentByDocument(string document);
+        Task<Student> GetStudentByEmail(string email);
+        Task<Student> GetStudentById(Guid id);
+        Task<Student> GetStudentByEmailAndDocument(string email, string document);
+        Task<CourseStudentDTO> GetStudentCourse(Guid studentId, Guid courseId);
     }
 }

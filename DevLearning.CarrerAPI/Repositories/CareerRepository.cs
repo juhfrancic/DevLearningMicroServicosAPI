@@ -1,271 +1,220 @@
 ﻿
-using Dapper;
 using DevLearning.CareerAPI.Repositories.Interfaces;
 using Domain.Models;
-using Domain.Models.DTOs.CareerItem;
-using Domain.Models.DTOs.Carrer;
-using Infrastructure.Data.SQL.Contexts;
-using Microsoft.Data.SqlClient;
-using System.Data.Common;
-using System.Transactions;
+using Infrastructure.Data.Mongo.Context;
+using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace DevLearning.CareerAPI.Repositories
 {
     public class CareerRepository : ICareerRepository
     {
-        private readonly SqlConnection connection;
-        private readonly ILogger<CareerRepository> logger;
-        public CareerRepository(ConnectionDB connectionDB, ILogger<CareerRepository> logger)
+
+        private readonly IMongoCollection<Career> _careersCollection;
+
+        private readonly IMongoCollection<CareerItem> _careerItemsCollection;
+
+        public CareerRepository(MongoDbContext mongoDbContext)
         {
-            this.connection = connectionDB.GetConnection();
-            this.logger = logger;
+            _careersCollection = mongoDbContext.Careers;
+            _careerItemsCollection = mongoDbContext.CareerItems;
         }
 
+        public async Task AddItemCareerAsync(CareerItem careerItem)
+        {
+            try
+            {
+                await _careerItemsCollection.InsertOneAsync(careerItem);
+
+                var filter = Builders<Career>.Filter.Eq(career => career.Id, careerItem.CareerId);
+
+                var update = Builders<Career>.Update.Push(c => c.Items, careerItem);
+                await _careersCollection.UpdateOneAsync(filter, update);
+
+                //ARRUMAR OS MINUTOS var durationInMinutesCourse = 
+            }
+            catch (MongoException mongoEx)
+            {
+                throw new MongoException(mongoEx.Message);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
 
         public async Task CreateCareerAsync(Career career)
         {
-            await connection.OpenAsync();
-            using var transaction = connection.BeginTransaction();
             try
             {
-                var sql = @"INSERT INTO Career (Id, Title, Summary, url, DurationInMinutes, Active, Featured, Tags)
-                        VALUES (@Id, @Title, @Summary, @url, @DurationInMinutes, @Active, @Featured, @Tags)";
-                var parameters = new
-                {
-                    career.Id,
-                    career.Title,
-                    career.Summary,
-                    career.url,
-                    career.DurationInMinutes,
-                    career.Active,
-                    career.Featured,
-                    career.Tags
-                };
-                await connection.ExecuteAsync(sql, parameters, transaction);
+                await _careersCollection.InsertOneAsync(career);
 
-                if (career.items is not null && career.items.Count > 0)
-                {
-                    var sqlCareerItem = @"INSERT INTO CareerItem (CareerId, CourseId, Title, Description, [Order])
-                                         VALUES (@CareerId, @CourseId, @Title, @Description, @Order)";
-
-                    foreach (var item in career.items)
-                    {
-                        await connection.ExecuteAsync(sqlCareerItem, new
-                        {
-                            CareerId = career.Id,
-                            item.CourseId,
-                            item.Title,
-                            item.Description,
-                            item.Order
-                        }, transaction);
-                    }
-                }
-                transaction.Commit();
             }
-            catch (SqlException ex)
+            catch (MongoException mongoEx)
             {
-                transaction.Rollback();
-                logger.LogError(ex, "Erro ao criar nova carreira e itens da carreira");
-                throw;
+                throw new MongoException(mongoEx.Message);
             }
-            
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
-
-        public async Task<List<CareerResponseDTO>> GetAllCareersAsync()
+        public async Task<IEnumerable<Career>> GetAllCareersAsync()
         {
             try
             {
-                var sql = @"SELECT 
-                            Id, Title, Summary, url, DurationInMinutes, Active, Featured, Tags
-                            FROM Career";
-                var careers = (await connection.QueryAsync<CareerResponseDTO>(sql)).ToList();
-                return careers;
+                var filter = Builders<Career>.Filter.Empty;
+
+                return await (await _careersCollection.FindAsync(filter)).ToListAsync();
 
             }
-            catch (SqlException ex)
+            catch (MongoException mongoEx)
             {
-                logger.LogError(ex, "Erro ao buscar todas as carreiras");
-                throw;
+                throw new MongoException(mongoEx.Message);
             }
-           
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
-        public async Task<CareerResponseDTO> GetCareerByIdAsync(Guid Id)
+        public async Task<Career> GetCareerByIdAsync(ObjectId careerId)
         {
             try
             {
-                var sql = @"SELECT 
-                       Id, Title, Summary, url, DurationInMinutes, Active, Featured, Tags
-                      FROM Career
-                      WHERE Id = @Id";
-                var career = await connection.QueryFirstOrDefaultAsync<CareerResponseDTO>(sql, new { Id = Id });
-                return career;
+                var filter = Builders<Career>.Filter.Eq(c => c.Id, careerId);
+                return await _careersCollection.Find(filter).FirstOrDefaultAsync();
+
             }
-            catch (SqlException ex)
+            catch (MongoException mongoEx)
             {
-                logger.LogError(ex, $"Erro ao buscar carreira com Id {Id}");
-                throw;
+                throw new MongoException(mongoEx.Message);
             }
-               
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
-        public async Task<bool> GetCareerByTitleAsync(string Title)
+        public async Task RemoveItemByCourseAsync(ObjectId careerId, ObjectId courseId)
         {
             try
             {
-                var sql = @"SELECT 
-                          Id, Title, Summary, url, DurationInMinutes, Active, Featured, Tags
-                          FROM Career
-                          WHERE Title = @Title";
-                var career = await connection.QuerySingleOrDefaultAsync<CareerResponseDTO>(sql, new { Title = Title });
-                return career == null ? false: true;
+                var mainFilter = Builders<Career>.Filter.ElemMatch(
+                                                                   c => c.Items, 
+                                                                   Builders<CareerItem>.Filter.Eq(item => item.CourseId, courseId)
+                                                                   );
+                var pullFilter = Builders<CareerItem>.Filter.Eq(item => item.CourseId, courseId);
+
+                var update = Builders<Career>.Update.PullFilter(c => c.Items, pullFilter);
+
+                var result = await _careersCollection.UpdateManyAsync(mainFilter, update);
+
             }
-            catch (SqlException ex)
+            catch (MongoException mongoEx)
             {
-                logger.LogError(ex, $"Erro ao buscar carreira com: {Title}");
-                throw;
+                throw new MongoException(mongoEx.Message);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
             }
         }
 
-        public async Task <bool> UpdateCareerAsync(Guid id, List<string> updates, DynamicParameters parameters)
+        public async Task<bool> RemoveItemCareerAsync(ObjectId careerId, ObjectId courseId)
         {
             try
             {
+                var filter = Builders<CareerItem>.Filter.And(
+                    Builders<CareerItem>.Filter.Eq(item => item.CareerId, careerId),
+                    Builders<CareerItem>.Filter.Eq(item => item.CourseId, courseId));
 
+                var result = await _careerItemsCollection.DeleteOneAsync(filter);
 
-                var sql = $"UPDATE Career SET {string.Join(", ", updates)} WHERE Id = @Id";
-                var rows = await connection.ExecuteAsync(sql, parameters);
+                if (result.DeletedCount is 0)
+                    throw new KeyNotFoundException($"Não há ligação entre {careerId} e {courseId}.");
 
-                return rows > 0 ? true : false;
+                var filterUpdate = Builders<Career>.Filter.Eq(career => career.Id, careerId);
+
+                var pullFilter = Builders<CareerItem>.Filter.Eq(item => item.CourseId, courseId);
+
+                var update = Builders<Career>.Update.PullFilter(c => c.Items, pullFilter);
+
+                var resultUpdate = await _careersCollection.UpdateOneAsync(filterUpdate, update);
+
+                //ARRUMAR MINUTOS  var filterUpdate = 
+                return true;
+
             }
-            catch (SqlException ex)
+            catch (MongoException mongoEx)
             {
-                logger.LogError($"Erro ao atualizar usuário com Id {id}: {ex.Message}");
-                throw;
+                throw new MongoException(mongoEx.Message);
             }
-            
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
-        public async Task<bool> DeleteCareerAsync(Guid Id)
+        public async Task UpdateActiveCareerAsync(ObjectId careerId)
         {
             try
             {
-                var sql = @"DELETE FROM CareerItem WHERE CareerId = @CareerId";
-                Guid CareerId = Id;
-                await connection.ExecuteAsync(sql, new { CareerId = CareerId });
-                sql = @"DELETE FROM Career WHERE Id = @Id";
-                var rows = await connection.ExecuteAsync(sql, new { Id = Id });
-                
-                return rows > 0 ? true : false;
-            }
-            catch (SqlException ex)
-            {
-                logger.LogError($"Erro ao deletar carreira com Id {Id}: {ex.Message}");
-                throw;
-            }
+                var filter = Builders<Career>.Filter.Eq(c => c.Id, careerId);
 
+                var update = Builders<Career>.Update.Set(c => c.Active, false);
+
+                var result = await _careersCollection.UpdateOneAsync(filter, update);
+
+            }
+            catch (MongoException mongoEx)
+            {
+                throw new MongoException(mongoEx.Message);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
         }
 
-        public async Task<CareerWhitCareerItemResponseDTO> GetOneCareerWithCareerItem(Guid careerId)
+        public async Task UpdateCareerAsync(Career career)
         {
             try
             {
-                CareerWhitCareerItemResponseDTO? career = null;
+                var filter = Builders<Career>.Filter.Eq(c => c.Id, career.Id);
 
-                var sql = @"SELECT 
-                          c.Id, c.Title, c.Summary, c.Url, c.DurationInMinutes, c.Active, c.Featured, c.Tags,
-                          ci.CourseId, ci.Title, ci.Description, ci.[Order],
-                          crs.Title AS CourseTitle
-                          FROM Career c
-                         LEFT JOIN CareerItem ci ON ci.CareerId = c.Id
-                         LEFT JOIN Course crs ON ci.CourseId = crs.Id
-                         WHERE c.Id = @CareerId
-                         ORDER BY ci.[Order];";
-
-                await connection.QueryAsync<CareerWhitCareerItemResponseDTO, CareerItemResponseDTO, CareerWhitCareerItemResponseDTO>(
-                    sql,
-                    (c, item) =>
-                    {
-                        if (career == null)
-                        {
-                            career = c;
-                            career.Items = new List<CareerItemResponseDTO>();
-                        }
-
-                        
-                        if (item != null && item.CourseId != Guid.Empty)
-                        {
-                            career.Items.Add(item);
-                        }
-
-                        return career;
-                    },
-                    param: new { CareerId = careerId },
-                    splitOn: "CourseId"
-                );
-
-                return career;
+                await _careersCollection.ReplaceOneAsync(filter, career);
             }
-            catch (SqlException ex)
+            catch (MongoException mongoEx)
             {
-                logger.LogError($"Erro ao buscar carreira com itens com o id da carreira {careerId}: {ex.Message}");
-                throw;
+                throw new MongoException(mongoEx.Message);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
             }
         }
 
-
-        public async Task<List<CareerWhitCareerItemResponseDTO>> GetAllCareerWithCareerItem()
+        public async Task<List<ObjectId>> GetItemByCourseAsync(ObjectId courseId)
         {
+
             try
             {
-                var careerDict = new Dictionary<Guid, CareerWhitCareerItemResponseDTO>();
+                var filter = Builders<CareerItem>.Filter.Eq(item => item.CourseId, courseId);
+                var projection = Builders<CareerItem>.Projection.Include(item => item.CareerId);
 
-                var sql = @"SELECT 
-                c.Id,
-                c.Title,
-                c.Summary,
-                c.Url,
-                c.DurationInMinutes,
-                c.Active,
-                c.Featured,
-                c.Tags,
-                ci.CourseId,
-                ci.Title,
-                ci.Description,
-                ci.[Order],
-                crs.Title AS CourseTitle
-            FROM Career c
-            LEFT JOIN CareerItem ci ON ci.CareerId = c.Id
-            LEFT JOIN Course crs ON ci.CourseId = crs.Id
-            ORDER BY c.Title, ci.[Order];";
+                return await _careerItemsCollection.Find(filter).Project(item => item.CareerId).ToListAsync();
 
-                var careers = await connection.QueryAsync<CareerWhitCareerItemResponseDTO, CareerItemResponseDTO, CareerWhitCareerItemResponseDTO>(
-                    sql,
-                    (career, item) =>
-                    {
-                        if (!careerDict.TryGetValue(career.Id, out var currentCareer))
-                        {
-                            currentCareer = career;
-                            careerDict.Add(currentCareer.Id, currentCareer);
-                        }
-
-                        if (item != null && item.CourseId != Guid.Empty)
-                            currentCareer.Items.Add(item);
-
-                        return currentCareer;
-                    },
-                    splitOn: "CourseId"
-                );
-
-                return careerDict.Values.ToList();
             }
-            catch (SqlException ex)
+            catch (MongoException mongoEx)
             {
-                logger.LogError(ex, "Erro ao buscar todas as carreiras com itens de carreira");
-                throw;
+                throw new MongoException(mongoEx.Message);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
             }
         }
-
     }
 }

@@ -1,34 +1,54 @@
-﻿namespace Domain.Models
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+
+namespace Domain.Models
 {
     public class Career
     {
-        public Guid Id { get; private set; }
+        public ObjectId Id { get; private set; }
+
         public string Title { get; private set; }
+
         public string Summary { get; private set; }
-        public string url { get; private set; }
+
+        public string Url { get; private set; }
+
         public int DurationInMinutes { get; private set; }
+
         public bool Active { get; private set; }
+
         public bool Featured { get; private set; }
+
         public string Tags { get; private set; }
-        public List<CareerItem> items { get; private set; } = new();
 
-        public Career() { }
+        [BsonElement("_items")]
+        public List<CareerItem> Items { get; private set; } = new List<CareerItem>();
 
-        public Career(string title, string summary, string url, int durationInMinutes, string tags)
+        public Career(ObjectId id, string title, string summary, string url, int durationInMinutes, bool active, bool featured, string tags)
         {
-            Id = Guid.NewGuid();
-            this.Title = title;
-            this.Summary = summary;
-            this.url = url;
-            this.DurationInMinutes = durationInMinutes;
-            this.Active = true;
-            Featured = false;
+            Id = id;
+            Title = title;
+            Summary = summary;
+            Url = url;
+            DurationInMinutes = durationInMinutes;
+            Active = active;
+            Featured = featured;
             Tags = tags;
         }
 
-        public void AddItem(CareerItem item)
+        public Career(string title, string summary, string url, string tags, bool featured)
         {
-            items.Add(item);
+            Title = title;
+            Summary = summary;
+            Url = url;
+            Tags = tags;
+            Featured = featured;
+            Active = true;
+            DurationInMinutes = 0;
         }
+
+        public void AddItem(CareerItem item) => Items.Add(item);
+
+        public void Deactivate() => Active = false;
     }
 }

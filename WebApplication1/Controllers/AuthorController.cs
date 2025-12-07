@@ -3,125 +3,140 @@ using Domain.Models.DTOs.Author;
 using Domain.Models.Enums.Author;
 using Microsoft.AspNetCore.Mvc;
 
-namespace DevLearning.AuthorAPI.Controllers;
-
-[Route("api/[controller]")]
-[ApiController]
-public class AuthorController(
-    AuthorService authorService
-) : ControllerBase
+namespace DevLearning.AuthorAPI.Controllers
 {
-
-    //Listar todos os autores
-    [HttpGet]
-    public async Task<ActionResult<List<AuthorResponseDTO>>> GetAllAuthors()
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AuthorController : ControllerBase
     {
-        try
-        {
-            var authors = await authorService.GetAllAuthorsAsync();
-            return Ok(authors);
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(
-                404,
-                new 
-                {
-                    error = $"Lista de autores não encontrada. {ex.Message}" 
-                }
-            );
-        }
-    }
+        private AuthorService _authorService;
+        private ILogger<AuthorController> _logger;
 
-    //Listar autor por Id
-    [HttpGet("{id}")]
-    public async Task<ActionResult> GetAuthorById(Guid id)
-    {
-        try
+        public AuthorController(AuthorService authorService, ILogger<AuthorController> logger)
         {
-            var author = await authorService.GetAuthorByIdAsync(id);
-            if (author is null)
-                return StatusCode(404, new { message = "Autor não encontrado" });
-            else
-                return Ok(author);
+            _authorService = authorService;
+            _logger = logger;
         }
-        catch (Exception ex)
-        {
-            return StatusCode(404, new { error = $"Autor não encontrado. {ex.Message}" });
-        }
-       
-    }
 
-    //Criar autor
-    [HttpPost]
-    public async Task<ActionResult> CreateAuthor(AuthorRequestDTO author)
-    {
-        try
+        //Listar todos os autores
+        [HttpGet]
+        public async Task<ActionResult<List<AuthorResponseDTO>>> GetAllAuthors()
         {
-            await authorService.CreateAuthorAsync(author);
-            return Created();
+            try
+            {
+                var authors = await _authorService.GetAllAuthorsAsync();
+                return Ok(authors);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao listar autores.");
+                return StatusCode(404, new { error = $"Lista de autores não encontrada. {ex.Message}" });
+            }
         }
-        catch (Exception ex)
-        {
-            return StatusCode(400, new { error = $"Erro ao criar autor. {ex.Message}" });
-        }
-    }
 
-    //Atualizar autor
-    // PATCH 
-    [HttpPatch("{id}")]
-    public async Task<ActionResult> UpdatePatchAuthor(Guid id, [FromBody] UpdateAuthorParcialDTO dto)
-    {
-        try
+        //Listar autor por Id
+        [HttpGet("{id}")]
+        public async Task<ActionResult> GetAuthorById(Guid id)
         {
-            await authorService.UpdatePatchAuthorAsync(id, dto);
-            return NoContent();
+            try
+            {
+                var author = await _authorService.GetAuthorByIdAsync(id);
+                if (author is null)
+                    return StatusCode(404, new { message = "Autor não encontrado" });
+                else
+                    return Ok(author);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao listar autor.");
+                return StatusCode(404, new { error = $"Autor não encontrado. {ex.Message}" });
+            }
+           
         }
-        catch (Exception ex)
-        {
-            return StatusCode(400, new { error = $"Erro ao atualizar autor. {ex.Message}" });
-        }
-    }
 
-    // PUT 
-    [HttpPut("{id}")]
-    public async Task<ActionResult> UpdatePutAuthor(Guid id, [FromBody] UpdateAuthorFullDTO dto)
-    {
-        try
+        //Criar autor
+        [HttpPost]
+        public async Task<ActionResult> CreateAuthor(AuthorRequestDTO author)
         {
-            await authorService.UpdatePutAuthorAsync(id, dto);
-            return NoContent();
+            try
+            {
+                await _authorService.CreateAuthorAsync(author);
+                return Created();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao criar autor.");
+                return StatusCode(400, new { error = $"Erro ao criar autor. {ex.Message}" });
+            }
         }
-        catch (Exception ex)
+
+        //Atualizar autor
+        // PATCH 
+        [HttpPatch("{id}")]
+        public async Task<ActionResult> UpdatePatchAuthor(Guid id, [FromBody] UpdateAuthorParcialDTO dto)
         {
-            return StatusCode(400, new { error = $"Erro ao atualizar autor. {ex.Message}" });
+            try
+            {
+                await _authorService.UpdatePatchAuthorAsync(id, dto);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao atualizar autor.");
+                return StatusCode(400, new { error = $"Erro ao atualizar autor. {ex.Message}" });
+            }
         }
-    }
 
-    // Atualiza apenas o tipo do autor// Ativo (1) ou Inativo (2)
-    [HttpPut("type/{id}")]
-    public async Task<ActionResult> UpdateType(Guid id, [FromBody] AuthorType type)
-    {
-        try
+        // PUT 
+        [HttpPut("{id}")]
+        public async Task<ActionResult> UpdatePutAuthor(Guid id, [FromBody] UpdateAuthorFullDTO dto)
         {
-            await authorService.UpdateAuthorTypeAsync(id, type);
-            return NoContent();
+            try
+            {
+                await _authorService.UpdatePutAuthorAsync(id, dto);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao atualizar autor.");
+                return StatusCode(400, new { error = $"Erro ao atualizar autor. {ex.Message}" });
+            }
         }
-        catch (Exception ex)
+
+        // Atualiza apenas o tipo do autor// Ativo (1) ou Inativo (2)
+        [HttpPut("type/{id}")]
+        public async Task<ActionResult> UpdateType(Guid id, [FromBody] AuthorType type)
         {
-            return StatusCode(400, new { error = $"Erro ao atualizar tipo do autor. {ex.Message}" });
+            try
+            {
+                await _authorService.UpdateAuthorTypeAsync(id, type);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao alterar Type de autor.");
+                return StatusCode(400, new { error = $"Erro ao atualizar tipo do autor. {ex.Message}" });
+            }
         }
-    }
 
-    //Listar cursos do autor
-    [HttpGet("{id}/courses")]
-    public async Task<ActionResult> GetAuthorCourses(Guid id)
-    {
-        var result = await authorService.GetAuthorCoursesAsync(id);
+        //Listar cursos do autor
+        [HttpGet("{id}/courses")]
+        public async Task<ActionResult> GetAuthorCourses(Guid id)
+        {
+            try
+            {
+                var result = await _authorService.GetAuthorCoursesAsync(id);
 
-        if (result == null)
-            return NotFound("Autor não encontrado.");
+                if (result == null)
+                    return NotFound("Autor não encontrado.");
 
-        return Ok(result);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar autor autores.");
+                return StatusCode(400, new { error = $"Erro ao buscar ator. {ex.Message}" });
+            }
+        }
     }
 }

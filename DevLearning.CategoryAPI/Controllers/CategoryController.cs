@@ -10,10 +10,12 @@ namespace DevLearning.CategoryAPI.Controllers
     public class CategoryController : ControllerBase
     {
         private readonly ICategoryService _categoryService;
+        private readonly ILogger<CategoryController> _logger;
 
-        public CategoryController(ICategoryService categoryService)
+        public CategoryController(ICategoryService categoryService, ILogger<CategoryController> logger)
         {
             _categoryService = categoryService;
+            _logger = logger;
         }
 
         [HttpPost]
@@ -26,10 +28,12 @@ namespace DevLearning.CategoryAPI.Controllers
             }
             catch (ArgumentException ex)
             {
+                _logger.LogError(ex, "Erro ao criar Categoria." + ex.Message);
                 return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Erro ao criar Categoria." + ex.Message);
                 return StatusCode(500, new { message = $"Erro interno: {ex.Message}" });
             }
         }
@@ -44,6 +48,7 @@ namespace DevLearning.CategoryAPI.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Erro ao buscar Categorias." + ex.Message);
                 return StatusCode(500, $"Erro interno: {ex.Message}");
             }
         }
@@ -58,14 +63,17 @@ namespace DevLearning.CategoryAPI.Controllers
             }
             catch (ArgumentException ex)
             {
+                _logger.LogError(ex, "Erro ao buscar Categoria." + ex.Message);
                 return BadRequest(new { message = ex.Message });
             }
             catch (KeyNotFoundException ex)
             {
+                _logger.LogError(ex, "Erro ao buscar Categoria." + ex.Message);
                 return NotFound(new { message =  ex.Message });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Erro ao buscar Categoria." + ex.Message);
                 return StatusCode(500, new { message = $"Erro interno: {ex.Message}" });
             }
         }
@@ -80,14 +88,17 @@ namespace DevLearning.CategoryAPI.Controllers
             }
             catch (ArgumentException ex)
             {
+                _logger.LogError(ex, "Erro ao atualizar Categoria." + ex.Message);
                 return BadRequest(new { message = ex.Message });
             }
             catch (KeyNotFoundException ex)
             {
+                _logger.LogError(ex, "Erro ao atualizar Categoria." + ex.Message);
                 return NotFound(new { message = ex.Message });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Erro ao atualizar Categoria." + ex.Message);
                 return StatusCode(500, new { message = $"Erro interno: {ex.Message}" });
             }
         }
@@ -102,14 +113,17 @@ namespace DevLearning.CategoryAPI.Controllers
             }
             catch (ArgumentException ex)
             {
+                _logger.LogError(ex, "Erro ao remover Categoria." + ex.Message);
                 return BadRequest(new { message = ex.Message });
             }
             catch (KeyNotFoundException ex)
             {
+                _logger.LogError(ex, "Erro ao remover Categoria." + ex.Message);
                 return NotFound(new { message = ex.Message });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Erro ao remover Categoria." + ex.Message);
                 return StatusCode(500, new { message = $"Erro interno: {ex.Message}" });
             }
         }
@@ -117,12 +131,30 @@ namespace DevLearning.CategoryAPI.Controllers
         [HttpGet("{id}/courses")]
         public async Task<IActionResult> GetCategoryCourses(Guid id)
         {
-            var result = await _categoryService.GetCategoryCoursesAsync(id);
+            try
+            {
+                var result = await _categoryService.GetCategoryCoursesAsync(id);
 
-            if (result == null)
-                return NotFound("Categoria não encontrada.");
+                if (result == null)
+                    return NotFound("Categoria não encontrada.");
 
-            return Ok(result);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar Categoria." + ex.Message);
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar Categoria." + ex.Message);
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Erro ao buscar Categoria." + ex.Message);
+                return StatusCode(500, new { message = $"Erro interno: {ex.Message}" });
+            }
         }
     }
 }
