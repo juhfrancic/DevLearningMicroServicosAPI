@@ -2,7 +2,7 @@
 using Domain.Models;
 using Domain.Models.DTOs.Course;
 using Domain.Models.DTOs.Student;
-using Infrastructure.Data.Mongo.Context;
+using Infrastructure.Data.Mongo.Contexts;
 using Infrastructure.Data.SQL.Contexts;
 using MongoDB.Driver;
 using System.Reflection.Metadata;
@@ -25,7 +25,7 @@ namespace DevLearning.StudentAPI.Repositories
         {
             try
             {
-                
+
                 await _students.InsertOneAsync(student);
 
             }
@@ -47,10 +47,10 @@ namespace DevLearning.StudentAPI.Repositories
                     courseId,
                     studentId,
                     studentCourse.Progress ?? 0,
-                    studentCourse.Favorite            
+                    studentCourse.Favorite
                 );
-               
-               
+
+
                 await _studentCourses.InsertOneAsync(SC);
             }
             catch (MongoException mongoEx)
@@ -89,8 +89,8 @@ namespace DevLearning.StudentAPI.Repositories
         {
             try
             {
-                 return await _students.Find(s => s.Document == document).FirstOrDefaultAsync();
-               
+                return await _students.Find(s => s.Document == document).FirstOrDefaultAsync();
+
             }
             catch (MongoException mongoEx)
             {
@@ -148,7 +148,7 @@ namespace DevLearning.StudentAPI.Repositories
             {
                 var student = await _students.Find(s => s.Id == studentId).FirstOrDefaultAsync();
 
-  
+
 
 
             }
@@ -187,7 +187,7 @@ namespace DevLearning.StudentAPI.Repositories
         {
             try
             {
-                var filter = Builders<StudentCourse>.Filter.Where(sc => sc.StudentId == studentId 
+                var filter = Builders<StudentCourse>.Filter.Where(sc => sc.StudentId == studentId
                                                                   && sc.CourseId == courseId);
 
                 var update = Builders<StudentCourse>.Update

@@ -1,11 +1,9 @@
 ﻿using DevLearning.CourseAPI.Repositories;
 using DevLearning.CourseAPI.Services.Interfaces;
 using Domain.Extensions;
-using Domain.Models;
-using Domain.Models.DTOs.Author;
-using Domain.Models.DTOs.Category;
 using Domain.Models.DTOs.Course;
 using Domain.Models.DTOs.Student;
+using MongoDB.Bson;
 
 namespace DevLearning.CourseAPI.Services;
 
@@ -125,7 +123,10 @@ public class CourseService(
     {
         try
         {
-            return await _courseRepository.GetOneCourseByIdAsync(Guid.Parse(id));
+            if (!ObjectId.TryParse(id, out var courseId))
+                throw new ArgumentException("Incorrect id");
+
+            return await _courseRepository.GetOneCourseByIdAsync(id);
         }
         catch (Exception ex)
         {

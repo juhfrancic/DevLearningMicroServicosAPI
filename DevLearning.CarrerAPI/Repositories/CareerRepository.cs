@@ -1,7 +1,7 @@
 ﻿
 using DevLearning.CareerAPI.Repositories.Interfaces;
 using Domain.Models;
-using Infrastructure.Data.Mongo.Context;
+using Infrastructure.Data.Mongo.Contexts;
 using MongoDB.Bson;
 using MongoDB.Driver;
 

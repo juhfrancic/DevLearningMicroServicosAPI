@@ -1,9 +1,6 @@
-using DevLearning.AuthorAPI.Data;
 using DevLearning.AuthorAPI.Repositories;
-using DevLearning.AuthorAPI.Repositories.Interfaces;
 using DevLearning.AuthorAPI.Services;
-using DevLearning.AuthorAPI.Services.Interfaces;
-using Infrastructure.Data;
+using Infrastructure.Data.SQL.Contexts;
 
 var builder = WebApplication.CreateBuilder(args);
 

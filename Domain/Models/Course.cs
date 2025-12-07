@@ -1,12 +1,13 @@
 ﻿using System.Reflection.Metadata.Ecma335;
 using System.Text.Json.Serialization;
 using Domain.Models.Enums.Course;
+using MongoDB.Bson;
 
 namespace Domain.Models
 {
     public class Course
     {
-        public Guid Id { get; private set; }
+        public ObjectId Id { get; private set; }
         public string Tag { get; private set; }
         public string Title { get; private set; }
         public string Summary { get; private set; }

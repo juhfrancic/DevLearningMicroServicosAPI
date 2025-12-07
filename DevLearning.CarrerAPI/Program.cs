@@ -2,7 +2,7 @@ using DevLearning.CareerAPI.Repositories;
 using DevLearning.CareerAPI.Repositories.Interfaces;
 using DevLearning.CareerAPI.Services;
 using DevLearning.CareerAPI.Services.Interfaces;
-using Infrastructure.Data.Mongo.Context;
+using Infrastructure.Data.Mongo.Contexts;
 
 var builder = WebApplication.CreateBuilder(args);
 
