@@ -1,7 +1,5 @@
 using DevLearning.StudentAPI.Repositories;
-using DevLearning.StudentAPI.Repositories.Interfaces;
 using DevLearning.StudentAPI.Services;
-using DevLearning.StudentAPI.Services.Interfaces;
 using Infrastructure.Data.Mongo.Contexts;
 
 var builder = WebApplication.CreateBuilder(args);
