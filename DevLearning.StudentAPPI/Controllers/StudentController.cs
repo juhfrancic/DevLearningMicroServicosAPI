@@ -1,6 +1,5 @@
 ﻿using DevLearning.StudentAPI.Services;
 using Domain.Models.DTOs.Student;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DevLearning.StudentAPI.Controllers

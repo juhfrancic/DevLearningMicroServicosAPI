@@ -8,14 +8,12 @@ namespace DevLearning.StudentAPI.Repositories.Interfaces
     public interface IStudentRepository
     {
         Task CreateStudent(Student student);
-        Task UpdateStudent(Student student, Guid id);
-        Task<List<StudentResponseDTO>> GetAllStudents();
-        Task<StudentResponseDTO> GetStudentByDocument(string document);
-        Task<StudentResponseDTO> GetStudentByEmail(string email);
-        Task<StudentResponseDTO> GetStudentById(Guid id);
-        Task<long> GetCountStudentCourse(Guid courseId);
         Task InsertStudentCourse(Guid studentId, Guid courseId, StudentRequestInsertCourseDTO studentCourse);
-        Task UpdateStudentCourse(Guid studentId, Guid courseId, StudentCourseRequestUpdateDTO studentCourse);
+        Task<List<StudentResponseDTO>> GetAllStudents();
+        Task<Student> GetStudentByDocument(string document);
+        Task<Student> GetStudentByEmail(string email);
+        Task<Student> GetStudentById(Guid id);
+        Task<Student> GetStudentByEmailAndDocument(string email, string document);
         Task<CourseStudentDTO> GetStudentCourse(Guid studentId, Guid courseId);
     }
 }

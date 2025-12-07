@@ -9,8 +9,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
-builder.Services.Configure<MongoDbSettings>(builder.Configuration.GetSection("MongoDB"));
-builder.Services.AddSingleton<ConnectionDb>();
+builder.Services.AddSingleton<MongoDbSettings>();
+
+builder.Services.AddHttpClient("Course", course =>
+{
+    course.BaseAddress = new Uri("https://localhost:7268");
+});
 
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<IStudentService, StudentService>();
