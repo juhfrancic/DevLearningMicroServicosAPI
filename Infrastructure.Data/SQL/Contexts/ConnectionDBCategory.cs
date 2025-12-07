@@ -1,6 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 
-namespace DevLearning.CategoryAPI.Data
+namespace Infrastructure.Data.SQL.Contexts
 {
     public class ConnectionDBCategory
     {

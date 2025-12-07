@@ -8,7 +8,7 @@ namespace DevLearning.StudentAPI.Controllers
     [ApiController]
     public class StudentController : ControllerBase
     {
-        private StudentService _studentService;
+        private readonly StudentService _studentService;
 
         public StudentController(StudentService studentService)
         {

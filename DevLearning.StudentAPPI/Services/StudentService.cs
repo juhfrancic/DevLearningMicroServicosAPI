@@ -12,7 +12,7 @@ namespace DevLearning.StudentAPI.Services;
 
 public class StudentService : IStudentService
 {
-    private StudentRepository _studentRepository;
+    private readonly StudentRepository _studentRepository;
     private readonly IHttpClientFactory _httpClientFactory;
 
     public StudentService(StudentRepository studentRepository, IHttpClientFactory httpClientFactory)
