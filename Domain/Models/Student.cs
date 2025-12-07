@@ -6,8 +6,7 @@ namespace Domain.Models
     public class Student
     {
         public Student(string name, string email, string? document, string? phone, DateTime birthdate)
-        {
-            Id = Guid.NewGuid();
+        { 
             Name = name;
             Email = email;
             Document = document;
@@ -23,7 +22,7 @@ namespace Domain.Models
 
         [BsonId]
         [BsonRepresentation(BsonType.String)]
-        public Guid Id { get; private set; }
+        public ObjectId Id { get; private set; }
         public string Name { get; private set; }
         public string Email { get; private set; }
         public string? Document { get; private set; }

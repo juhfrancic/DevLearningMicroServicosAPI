@@ -1,6 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 
-namespace DevLearning.AuthorAPI.Data
+namespace Infrastructure.Data.SQL.Contexts
 {
     public class ConnectionDBAuthor
     {
@@ -8,7 +9,7 @@ namespace DevLearning.AuthorAPI.Data
 
         public ConnectionDBAuthor(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("SqlConnectionAuthor");
+            _connectionString = configuration.GetConnectionString("SqlConnectionAuthor")!;
         }
 
         public SqlConnection GetConnection()

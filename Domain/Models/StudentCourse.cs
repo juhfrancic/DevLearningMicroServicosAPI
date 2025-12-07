@@ -1,11 +1,6 @@
 ﻿using Domain.Models.Enums.StudentCourse;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Domain.Models
 {
@@ -13,11 +8,11 @@ namespace Domain.Models
     {
         [BsonId]
         [BsonRepresentation(BsonType.String)]
-        public Guid StudentCourseId { get; private set; } = Guid.NewGuid();
+        public ObjectId StudentCourseId { get; private set; }
         [BsonElement("courseId")]
-        public Guid CourseId { get; private set; }
+        public ObjectId CourseId { get; private set; }
         [BsonElement("studentId")]
-        public Guid StudentId { get; private set; }
+        public ObjectId StudentId { get; private set; }
         [BsonElement("progress")]
         public byte Progress { get; private set; }
         [BsonElement("favorite")]
@@ -27,7 +22,7 @@ namespace Domain.Models
         [BsonElement("lastUpdateDate")]
         public DateTime LastUpdateDate { get; private set; }
 
-        public StudentCourse(Guid courseId, Guid studentId, byte progress, FavoriteType favorite)
+        public StudentCourse(ObjectId courseId, ObjectId studentId, byte progress, FavoriteType favorite)
         {
             CourseId = courseId;
             StudentId = studentId;
@@ -36,7 +31,5 @@ namespace Domain.Models
             StartDate = DateTime.Now;
             LastUpdateDate = DateTime.Now;
         }
-
-
     }
 }

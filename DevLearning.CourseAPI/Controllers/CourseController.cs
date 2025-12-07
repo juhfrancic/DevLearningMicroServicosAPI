@@ -60,13 +60,44 @@ public class CourseController(
         }
     }
 
-    [HttpGet("{course}")]
-    public async Task<ActionResult<CourseResponseDTO>> GetOneCourseByTitleAsync(CourseRequestTitleDTO course)
+    [HttpGet("title/{dto}")]
+    public async Task<ActionResult<CourseResponseDTO>> GetOneCourseByTitleAsync(CourseRequestTitleDTO dto)
     {
         try
         {
-            var user = await _courseService.GetOneCourseByTitleAsync(course.Title);
-            return Ok(user);
+            var course = await _courseService.GetOneCourseByTitleAsync(dto.Title);
+
+            if (course is null)
+                return NotFound("Register not found");
+
+            return Ok(course);
+        }
+        catch (ArgumentException ex)
+        {
+            return StatusCode(400, new { error = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return StatusCode(400, new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+
+    [HttpGet("id/{idCourse}")]
+    public async Task<ActionResult<CourseResponseDTO>> GetOneCourseByIdAsync(string idCourse)
+    {
+        try
+        {
+            var course = await _courseService.GetOneCourseByIdAsync(idCourse);
+
+            if (course is null)
+                return NotFound("Register not found");
+
+            return Ok(course);
         }
         catch (ArgumentException ex)
         {
@@ -110,7 +141,7 @@ public class CourseController(
         try
         {
             await _courseService.UpdateCourseByTitleAsync(title, update);
-            return Ok();
+            return NoContent();
         }
         catch (ArgumentException ex)
         {
@@ -132,7 +163,7 @@ public class CourseController(
         try
         {
             await _courseService.UpdateActiveCourseByTitleAsync(title);
-            return Ok();
+            return NoContent();
         }
         catch (ArgumentException ex)
         {

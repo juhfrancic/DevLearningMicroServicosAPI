@@ -1,10 +1,8 @@
-﻿using Domain.Models.DTOs.Course;
-
-namespace Domain.Models.DTOs.Student
+﻿namespace Domain.Models.DTOs.Student
 {
     public class StudentResponseDTO
     {
-        public Guid Id { get; init; }
+        public string Id { get; init; }
         public string Name { get; init; }
         public string Email { get; init; }
         public string? Document { get; init; }

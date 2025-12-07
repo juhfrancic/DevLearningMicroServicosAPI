@@ -4,7 +4,7 @@ namespace Domain.Models.DTOs.Course
 {
     public class CourseResponseDTO
     {
-        public Guid CourseId { get; init; }
+        public string? CourseId { get; init; }
         public string? Tag { get; init; }
         public string? Title { get; init; }
         public string? Summary { get; init; }

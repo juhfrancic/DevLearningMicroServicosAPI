@@ -2,7 +2,8 @@
 using Domain.Extensions;
 using Domain.Models;
 using Domain.Models.DTOs.Course;
-using Infrastructure.Data.Mongo.Context;
+using Infrastructure.Data.Mongo.Contexts;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace DevLearning.CourseAPI.Repositories;
@@ -12,7 +13,6 @@ public class CourseRepository(
     ) : ICourseRepository
 {
     private readonly IMongoCollection<Course> _courseCollection = mongoDbContext.Courses;
-
     public async Task CreateCourseAsync(Course course)
     {
         try
@@ -73,11 +73,21 @@ public class CourseRepository(
         }
     }
 
-    public async Task<CourseResponseDTO> GetOneCourseByIdAsync(Guid id)
+    public async Task<CourseResponseDTO> GetOneCourseByIdAsync(ObjectId id)
     {
-
-        var course = await _courseCollection.Find(c => c.Id == id).FirstOrDefaultAsync();
-        return course.ToDto();
+        try
+        {
+            var course = await _courseCollection.Find(c => c.Id == id).FirstOrDefaultAsync();
+            return course.ToDto();
+        }
+        catch (MongoException mongoEx)
+        {
+            throw new Exception(mongoEx.Message);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
     }
 
     public async Task UpdateCourseByTitleAsync(string title, bool free, bool featured)
