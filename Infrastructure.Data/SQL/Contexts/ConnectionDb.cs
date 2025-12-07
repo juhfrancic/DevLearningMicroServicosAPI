@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
-namespace Infrastructure.Data
+namespace Infrastructure.Data.SQL.Contexts
 {
     public class ConnectionDb
     {

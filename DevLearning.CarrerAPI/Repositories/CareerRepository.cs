@@ -4,7 +4,7 @@ using DevLearning.CareerAPI.Repositories.Interfaces;
 using Domain.Models;
 using Domain.Models.DTOs.CareerItem;
 using Domain.Models.DTOs.Carrer;
-using Infrastructure.Data;
+using Infrastructure.Data.SQL.Contexts;
 using Microsoft.Data.SqlClient;
 using System.Data.Common;
 using System.Transactions;
