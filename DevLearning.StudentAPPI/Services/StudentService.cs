@@ -2,7 +2,9 @@
 using DevLearning.StudentAPI.Repositories;
 using DevLearning.StudentAPI.Services.Interfaces;
 using Domain.Models;
+using Domain.Models.DTOs.Course;
 using Domain.Models.DTOs.Student;
+using MongoDB.Driver;
 
 
 namespace DevLearning.StudentAPI.Services
@@ -23,7 +25,14 @@ namespace DevLearning.StudentAPI.Services
                 var studentStorage = await _studentRepository.GetStudentByEmailAndDocument(student.Email, student.Document);
                 if(studentStorage is not null)
                     throw new Exception("Estudante com email ou documento já cadastrado.");
-                var newStudent = new Student(student.Name, student.Email, student.Document, student.Phone, student.Birthdate);
+                
+                var newStudent = new Student(
+                    student.Name, 
+                    student.Email,
+                    student.Document, 
+                    student.Phone, 
+                    student.Birthdate
+                );
                 await _studentRepository.CreateStudent(newStudent);
             }
             catch (Exception ex)
@@ -37,13 +46,18 @@ namespace DevLearning.StudentAPI.Services
             {
                 if (await _studentRepository.GetStudentById(studentId) is null)
                     throw new Exception("Estudante não encontrado");
+
                 var course = await _courseRepository.GetOneCourseByIdAsync(courseId);
+
                 if (course is null)
                     throw new Exception("Curso não encontrado");
+                
                 if (course.Active == false)
                     throw new Exception("Curso inativo, não pode ocorrer mátricula");
+
                 if(await _studentRepository.GetStudentCourse(studentId, courseId) is not null)
                     throw new Exception("Estudante já está matriculado nesse curso");
+
                 await _studentRepository.InsertStudentCourse(studentId, courseId, studentCourse);
             }
             catch (Exception ex)
@@ -108,11 +122,11 @@ namespace DevLearning.StudentAPI.Services
                     throw new Exception("O email informado já está cadastrado.");
 
                 var newStudent = new Student(
-                    student.Name is not null ? student.Name : studentStorage.Name,
-                    student.Email is not null ? student.Email : studentStorage.Email,
-                    student.Phone is not null ? student.Phone : studentStorage.Phone,
-                    student.Document is not null ? student.Document : studentStorage.Document,
-                    student.Birthdate is not null ? (DateTime)student.Birthdate : studentStorage.Birthdate
+                    student.Name ?? studentStorage.Name,
+                    student.Email ?? studentStorage.Email,
+                    student.Phone ?? studentStorage.Phone,
+                    student.Document ?? studentStorage.Document,
+                    student.Birthdate ?? studentStorage.Birthdate
                     );
                 await _studentRepository.UpdateStudent(newStudent, Guid.Parse(id));
             }
@@ -131,6 +145,25 @@ namespace DevLearning.StudentAPI.Services
                 if (await _courseRepository.GetOneCourseByIdAsync(courseId) is null)
                     throw new Exception("Curso não encontrado");
                 await _studentRepository.UpdateStudentCourse(studentId, courseId, studentCourse);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+        public async Task<CourseStudentDTO> GetStudentCourse(Guid studentId, Guid courseId)
+        {
+            try
+            {
+                var allStudents = await _studentRepository.GetAllStudents();
+
+                var student = allStudents.FirstOrDefault(s => s.StudentId == studentId);
+                if (student is null)
+                    return null;
+
+                var course = student.Courses.FirstOrDefault(c => c.CourseId == courseId);
+
+                return course;
             }
             catch (Exception ex)
             {

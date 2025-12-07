@@ -1,4 +1,7 @@
-﻿namespace Domain.Models
+﻿using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+
+namespace Domain.Models
 {
     public class Student
     {
@@ -18,6 +21,8 @@
             
         }
 
+        [BsonId]
+        [BsonRepresentation(BsonType.String)]
         public Guid Id { get; private set; }
         public string Name { get; private set; }
         public string Email { get; private set; }
