@@ -11,7 +11,6 @@ public static class CourseExtension
             return null;
 
         return new Course(
-                 Guid.NewGuid(),
                  dto.Tag,
                  dto.Title,
                  dto.Summary,
@@ -35,7 +34,7 @@ public static class CourseExtension
 
         return new CourseResponseDTO
         {
-            CourseId = course.Id,
+            CourseId = course.Id.ToString(),
             Tag = course.Tag,
             Title = course.Title,
             Summary = course.Summary,
