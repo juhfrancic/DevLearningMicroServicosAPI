@@ -12,7 +12,7 @@ namespace Domain.Models
             Email = email;
             Document = document;
             Phone = phone;
-            Birthdate = birthdate;
+            BirthDate = birthdate;
             CreateDate = DateTime.Now;
         }
 
@@ -28,7 +28,7 @@ namespace Domain.Models
         public string Email { get; private set; }
         public string? Document { get; private set; }
         public string? Phone { get; private set; }
-        public DateTime Birthdate { get; private set; }
+        public DateTime? BirthDate { get; private set; }
         public DateTime CreateDate { get; private set; }
     }
 }
