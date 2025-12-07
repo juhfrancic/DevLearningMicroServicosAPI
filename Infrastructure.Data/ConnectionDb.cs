@@ -1,20 +1,32 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Domain.Models;
+using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 
 namespace Infrastructure.Data
 {
-    public class ConnectionDB
+    public class ConnectionDb
     {
-
-        private readonly string _connectionString;
-
-        public ConnectionDB(IConfiguration configuration)
+        private readonly IMongoCollection<Student> _students;
+        private readonly IMongoCollection<StudentCourse> _studentCourses;
+        public ConnectionDb(IOptions<MongoDbSettings> mongoDbSettings)
         {
-            _connectionString = configuration.GetConnectionString("DefaultConnection");
+        
+
+        MongoClient client = new MongoClient(mongoDbSettings.Value.ConnectionURI);
+        IMongoDatabase database = client.GetDatabase(mongoDbSettings.Value.DatabaseName);
+
+        _students = database.GetCollection<Student>("Students");
+        _studentCourses = database.GetCollection<StudentCourse>("StudentCourses");
         }
 
-        public SqlConnection GetConnection()
+    public IMongoCollection<Student> GetStudentCollection()
         {
-            return new SqlConnection(_connectionString);
+            return _students;
+        }
+
+        public IMongoCollection<StudentCourse> GetStudentCourseCollection()
+        {
+            return _studentCourses;
         }
     }
 }

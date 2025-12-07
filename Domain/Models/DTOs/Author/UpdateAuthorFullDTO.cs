@@ -1,6 +1,4 @@
-﻿using DevLearning.API.Models.Enums.Author;
-
-namespace Domain.Models.DTOs.Author
+﻿namespace Domain.Models.DTOs.Author
 {
     public class UpdateAuthorFullDTO
     {

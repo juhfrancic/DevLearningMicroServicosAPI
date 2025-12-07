@@ -19,10 +19,10 @@ namespace DevLearning.StudentAPI.Repositories
         private readonly IMongoCollection<Student> _students;
         private readonly IMongoCollection<StudentCourse> _studentCourses;
         private readonly IMongoCollection<Course> _courses;
-        public StudentRepository(IMongoDatabase database)
+        public StudentRepository(ConnectionDb connectionDb)
         {
-            _students = database.GetCollection<Student>("Students");
-            _studentCourses = database.GetCollection<StudentCourse>("StudentCourses");
+            _students = connectionDb.GetStudentCollection();
+            _studentCourses = connectionDb.GetStudentCourseCollection();
         }
         public async Task CreateStudent(Student student)
         {
@@ -165,49 +165,19 @@ namespace DevLearning.StudentAPI.Repositories
                 throw new Exception(ex.Message);
             }
         }
-
-        public async Task<StudentCourseResponseDTO> GetStudentCourse(Guid studentId, Guid courseId)
+        public async Task<CourseStudentDTO> GetStudentCourse(Guid studentId, Guid courseId)
         {
             try
             {
-                var sql = @"SELECT 
-                            s.Id AS StudentId, 
-                            s.Name AS [Name], 
-                            s.Email AS Email, 
-                            s.Document AS Document, 
-                            s.Phone AS Phone, 
-                            s.Birthdate AS BirthDate, 
-                            s.CreateDate AS CreateDate,
-                            c.Id AS CourseId, 
-                            c.Title AS Title, 
-                            c.Summary AS Summary, 
-                            c.Url AS [Url], 
-                            c.Level AS [Level], 
-                            c.DurationInMinutes AS DurationInMinutes,
-                            sc.Progress AS Progress, 
-                            sc.Favorite AS Favorite, 
-                            sc.StartDate AS StartDate, 
-                            sc.LastUpdateDate AS LastUpdateDate
-                        FROM StudentCourse sc
-                        INNER JOIN Student s ON sc.StudentId = s.Id
-                        INNER JOIN Course c ON sc.CourseId = c.Id
-                        WHERE sc.StudentId = @StudentId
-                          AND sc.CourseId = @CourseId;";
-                var studentCourse = await _connection.QueryAsync<
-                    StudentResponseDTO,
-                    CourseStudentDTO,
-                    StudentCourseResponseDTO,
-                    StudentCourseResponseDTO>(sql, (student, course, studentCourse) =>
-                {
-                    studentCourse.Student = student;
-                    studentCourse.Course = course;
-                    return studentCourse;
-                },
-                param: new { StudentId = studentId, CourseId = courseId },
-                splitOn: "CourseId, Progress"
-                );
+                var allStudents = await GetAllStudents();
 
-                return studentCourse.FirstOrDefault();
+                var student = allStudents.FirstOrDefault(s => s.StudentId == studentId);
+                if (student is null)
+                    return null;
+
+                var course = student.Courses.FirstOrDefault(c => c.CourseId == courseId);
+
+                return course;
             }
             catch (Exception ex)
             {
@@ -251,16 +221,12 @@ namespace DevLearning.StudentAPI.Repositories
                 throw new Exception(ex.Message);
             }
         }
-        public Task<int> GetCountStudentCourse(Guid courseId)
+        public async Task<long> GetCountStudentCourse(Guid courseId)
         {
             try
             {
-                var sql = @"SELECT COUNT(*) FROM StudentCourse WHERE CourseId = @CourseId";
-                return _connection.ExecuteScalarAsync<int>(sql, new { CourseId = courseId });
-            }
-            catch (SqlException ex)
-            {
-                throw new Exception(ex.Message);
+                var filter = Builders<StudentCourse>.Filter.Eq(sc => sc.CourseId, courseId);
+                return await _studentCourses.CountDocumentsAsync(filter);
             }
             catch (Exception ex)
             {
