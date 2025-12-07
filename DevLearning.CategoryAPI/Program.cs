@@ -3,7 +3,6 @@ using DevLearning.CategoryAPI.Repositories;
 using DevLearning.CategoryAPI.Repositories.Interfaces;
 using DevLearning.CategoryAPI.Services;
 using DevLearning.CourseAPI.Repositories;
-using Microsoft.AspNetCore.WebSockets;
 
 var builder = WebApplication.CreateBuilder(args);
 

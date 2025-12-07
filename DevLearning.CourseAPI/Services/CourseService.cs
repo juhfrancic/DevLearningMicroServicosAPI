@@ -126,7 +126,7 @@ public class CourseService(
             if (!ObjectId.TryParse(id, out var courseId))
                 throw new ArgumentException("Incorrect id");
 
-            return await _courseRepository.GetOneCourseByIdAsync(id);
+            return await _courseRepository.GetOneCourseByIdAsync(courseId);
         }
         catch (Exception ex)
         {

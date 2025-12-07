@@ -13,6 +13,6 @@ namespace DevLearning.StudentAPI.Services.Interfaces
         Task<StudentResponseDTO> GetStudentById(string id);
         Task UpdateStudent(StudentRequestUpdateDTO student, string id);
         Task UpdateStudentCourse(Guid studentId, Guid courseId, StudentCourseRequestUpdateDTO studentCourse);
-        Task<CourseStudentDTO> GetStudentCourse(Guid studentId, Guid courseId);
+        Task<CourseStudentDTO> GetStudentCourse(string studentId, string courseId);
     }
 }

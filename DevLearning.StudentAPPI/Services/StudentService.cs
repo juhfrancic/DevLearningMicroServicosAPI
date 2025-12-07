@@ -195,7 +195,7 @@ public class StudentService : IStudentService
             throw new Exception(ex.Message);
         }
     }
-    public async Task<CourseStudentDTO> GetStudentCourse(Guid studentId, string courseId)
+    public async Task<CourseStudentDTO> GetStudentCourse(string studentId, string courseId)
     {
         try
         {
