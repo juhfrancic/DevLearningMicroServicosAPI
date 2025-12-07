@@ -1,6 +1,5 @@
 ﻿using DevLearning.StudentAPI.Services;
 using Domain.Models.DTOs.Student;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DevLearning.StudentAPI.Controllers
@@ -30,7 +29,7 @@ namespace DevLearning.StudentAPI.Controllers
             }
         }
 
-        [HttpPost("/api/students/{studentId}/courses/{courseId}")]
+        [HttpPost("/api/students/{studentId}/courses/{coursesId}")]
         public async Task<ActionResult> InsertStudentCourse([FromBody] StudentRequestInsertCourseDTO student, string studentId, string courseId)
         {
             try
@@ -50,7 +49,7 @@ namespace DevLearning.StudentAPI.Controllers
             try
             {
                 await _studentService.UpdateStudent(student, studentId);
-                return StatusCode(204, new { message = "Estudante atualizado com sucesso" });
+                return NoContent();
             }
             catch (Exception ex)
             {
@@ -65,7 +64,7 @@ namespace DevLearning.StudentAPI.Controllers
             {
                 var students = await _studentService.GetAllStudents();
                 if (students is null && students.Count == 0)
-                    return StatusCode(404, new { message = "Nenhum estudante encontrado" });
+                    return NotFound();
                 else
                     return Ok(students);
             }
@@ -82,7 +81,7 @@ namespace DevLearning.StudentAPI.Controllers
             {
                 var student = await _studentService.GetStudentById(id);
                 if (student is null)
-                    return StatusCode(404, new { message = "Estudante não encontrado" });
+                    return NotFound();
                 else
                     return Ok(student);
             }
@@ -92,14 +91,14 @@ namespace DevLearning.StudentAPI.Controllers
             }
         }
 
-        [HttpGet("get-by-document")]
-        public async Task<ActionResult> GetStudentByDocument([FromBody] StudentRequestDocumentDTO student)
+        [HttpGet("Document/{document}")]
+        public async Task<ActionResult> GetStudentByDocument(string document)
         {
             try
             {
-                var studentStorage = await _studentService.GetStudentByDocument(student.document);
+                var studentStorage = await _studentService.GetStudentByDocument(document);
                 if (studentStorage is null)
-                    return StatusCode(404, new { message = "Estudante não encontrado " });
+                    return NotFound();
                 else
                     return Ok(studentStorage);
             }
@@ -109,14 +108,14 @@ namespace DevLearning.StudentAPI.Controllers
             }
         }
 
-        [HttpGet("get-by-email")]
-        public async Task<ActionResult> GetStudentByEmail([FromBody] StudentRequestEmailDTO student)
+        [HttpGet("Email/{email}")]
+        public async Task<ActionResult> GetStudentByEmail(string email)
         {
             try
             {
-                var studentStorage = await _studentService.GetStudentByEmail(student.email);
+                var studentStorage = await _studentService.GetStudentByEmail(email);
                 if (studentStorage is null)
-                    return StatusCode(404, new { message = "Estudante não encontrado " });
+                    return NotFound();
                 else
                     return Ok(studentStorage);
             }
@@ -126,13 +125,13 @@ namespace DevLearning.StudentAPI.Controllers
             }
         }
 
-        [HttpPut("/api/students/{studentId}/courses/{courseId}")]
+        [HttpPut("students/{studentId}/courses/{courseId}")]
         public async Task<ActionResult> UpdateStudentCourse([FromBody] StudentCourseRequestUpdateDTO student, string studentId, string courseId)
         {
             try
             {
                 await _studentService.UpdateStudentCourse(Guid.Parse(studentId), Guid.Parse(courseId), student);
-                return StatusCode(204, new { message = "Cliente atualizado com sucesso" });
+                return NoContent();
             }
             catch (Exception ex)
             {

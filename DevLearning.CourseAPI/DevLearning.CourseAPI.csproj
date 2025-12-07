@@ -14,7 +14,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DevLearning.CategoryAPI\DevLearning.CategoryAPI.csproj" />
-    <ProjectReference Include="..\DevLearning.StudentAPPI\DevLearning.StudentAPI.csproj" />
     <ProjectReference Include="..\Domain\Domain.csproj" />
     <ProjectReference Include="..\WebApplication1\DevLearning.AuthorAPI.csproj" />
   </ItemGroup>
