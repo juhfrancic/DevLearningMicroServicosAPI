@@ -16,21 +16,21 @@ public class StudentController : ControllerBase
     }
 
     [HttpPost()]
-    public async Task CreateStudent([FromBody] StudentRequestDTO student)
+    public async Task<ActionResult> CreateStudent([FromBody] StudentRequestDTO student)
     {
         try
         {
             await _studentService.CreateStudent(student);
-            Created();
+            return Created("", new { message = "Aluno criado com sucesso" });
         }
         catch (Exception ex)
         {
-            StatusCode(500, new { error = ex.Message });
+            return StatusCode(500, new { error = ex.Message });
         }
     }
 
-    [HttpPost("/api/students/{studentId}/courses/{coursesId}")]
-    public async Task<ActionResult> InsertStudentCourse([FromBody] StudentRequestInsertCourseDTO student, string studentId, string courseId)
+    [HttpPost("students/{studentId}/courses/{courseId}")]
+    public async Task<ActionResult> InsertStudentCourse(string studentId, string courseId, [FromBody] StudentRequestInsertCourseDTO student)
     {
         try
         {
@@ -74,6 +74,7 @@ public class StudentController : ControllerBase
         }
     }
 
+
     [HttpGet("{id}")]
     public async Task<ActionResult> GetStudentById(string id)
     {
@@ -91,7 +92,7 @@ public class StudentController : ControllerBase
         }
     }
 
-    [HttpGet("Document/{document}")]
+    [HttpGet("document/{document}")]
     public async Task<ActionResult> GetStudentByDocument(string document)
     {
         try
@@ -108,7 +109,7 @@ public class StudentController : ControllerBase
         }
     }
 
-    [HttpGet("Email/{email}")]
+    [HttpGet("email/{email}")]
     public async Task<ActionResult> GetStudentByEmail(string email)
     {
         try
@@ -138,4 +139,7 @@ public class StudentController : ControllerBase
             return StatusCode(500, new { error = ex.Message });
         }
     }
+
+
+
 }

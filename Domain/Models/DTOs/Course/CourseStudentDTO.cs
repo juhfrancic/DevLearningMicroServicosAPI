@@ -1,10 +1,11 @@
 ﻿using Domain.Models.Enums.Course;
+using MongoDB.Bson;
 
 namespace Domain.Models.DTOs.Course
 {
     public class CourseStudentDTO
     {
-        public Guid CourseId { get; init; }
+        public ObjectId CourseId { get; init; }
         public string Title { get; init; }
         public string Summary { get; init; }
         public string Url { get; init; }
