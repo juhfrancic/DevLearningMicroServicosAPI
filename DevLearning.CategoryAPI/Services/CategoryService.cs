@@ -166,8 +166,10 @@ namespace DevLearning.CategoryAPI.Services
             {
                 var client = _httpClientCourses;
                 var categoryTitle = await _categoryRepository.GetCategoryCoursesAsync(categoryId);
+
                 if (categoryTitle == null)
                     return null;
+
                 var coursesClient = await client.GetFromJsonAsync<List<CourseResponseDTO>>($"/api/course/category/{categoryId}");
                 return new CategoryWithCoursesDTO
                 {

@@ -206,12 +206,12 @@ public class CategoryRepository : ICategoryRepository
     {
         try
         {
-            var sql = @"SELECT cat.Title AS CategoryTitle
+            var sql = @"SELECT cat.Title
                         FROM Category cat
                         WHERE cat.Id = @CategoryId";
 
             var rows = await _connection.QueryFirstOrDefaultAsync(sql, new { CategoryId = categoryId });
-            return rows;
+            return rows.Title;
         }
         catch (Exception ex)
         {

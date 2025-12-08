@@ -1,11 +1,13 @@
 ﻿using DevLearning.CourseAPI.Repositories;
 using DevLearning.CourseAPI.Services.Interfaces;
 using Domain.Extensions;
+using Domain.Models;
 using Domain.Models.DTOs.Author;
 using Domain.Models.DTOs.Category;
 using Domain.Models.DTOs.Course;
 using Domain.Models.DTOs.Student;
 using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace DevLearning.CourseAPI.Services;
 
@@ -84,6 +86,41 @@ public class CourseService(
         {
             throw new Exception(ex.Message);
         }
+    }
+
+    public async Task<List<CourseResponseDTO>> GetCoursesByAuthor(string idAuthor)
+    {
+        try
+        {
+            var courses = await _courseRepository.GetCoursesByAuthor(idAuthor);
+            return courses;
+        }
+        catch (MongoException mongoEx)
+        {
+            throw new MongoException(mongoEx.Message);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+
+    }
+    public async Task<List<CourseResponseDTO>> GetCoursesByCategory(string idCategory)
+    {
+        try
+        {
+            var courses = await _courseRepository.GetCoursesByCategory(idCategory);
+            return courses;
+        }
+        catch (MongoException mongoEx)
+        {
+            throw new MongoException(mongoEx.Message);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+
     }
 
     public async Task UpdateCourseByTitleAsync(string title, CourseUpdateDTO update)

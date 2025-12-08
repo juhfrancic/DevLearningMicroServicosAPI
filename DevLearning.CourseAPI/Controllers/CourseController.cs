@@ -86,6 +86,42 @@ public class CourseController(
         }
     }
 
+    [HttpGet("author/{idAuthor}")]
+    public async Task<ActionResult<List<CourseResponseDTO>>> GetCourseByAuthor(string idAuthor)
+    {
+        try
+        {
+            var courses = await _courseService.GetCoursesByAuthor(idAuthor);
+
+            if (courses is null)
+                return NotFound("Register not found");
+
+            return Ok(courses);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpGet("category/{idCategory}")]
+    public async Task<ActionResult<List<CourseResponseDTO>>> GetCourseByCategory(string idCategory)
+    {
+        try
+        {
+            var courses = await _courseService.GetCoursesByCategory(idCategory);
+
+            if (courses is null)
+                return NotFound("Register not found");
+
+            return Ok(courses);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
 
     [HttpGet("id/{idCourse}")]
     public async Task<ActionResult<CourseResponseDTO>> GetOneCourseByIdAsync(string idCourse)
