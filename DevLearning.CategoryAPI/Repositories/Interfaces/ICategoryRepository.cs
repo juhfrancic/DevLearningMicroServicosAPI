@@ -1,5 +1,6 @@
 ﻿using Domain.Models;
 using Domain.Models.DTOs.Category;
+using Domain.Models.DTOs.Course;
 
 namespace DevLearning.CategoryAPI.Repositories.Interfaces
 {
@@ -15,6 +16,6 @@ namespace DevLearning.CategoryAPI.Repositories.Interfaces
         Task UpdateCategoryAsync(Category category);
         Task<bool> HasCourseAsync(Guid categoryId);
         Task DeleteCategoryAsync(Guid id);
-        Task<(string CategoryTitle, List<string> Courses)> GetCategoryCoursesAsync(Guid categoryId);
+        Task<string> GetCategoryCoursesAsync(Guid categoryId);
     }
 }

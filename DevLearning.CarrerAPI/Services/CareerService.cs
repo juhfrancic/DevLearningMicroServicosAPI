@@ -1,5 +1,6 @@
-﻿using DevLearning.CareerAPI.Repositories.Interfaces;
+using DevLearning.CareerAPI.Repositories;
 using DevLearning.CareerAPI.Services.Interfaces;
+﻿using DevLearning.CareerAPI.Repositories.Interfaces;
 using Domain.Models;
 using Domain.Models.DTOs.CareerItem;
 using Domain.Models.DTOs.Carrer;

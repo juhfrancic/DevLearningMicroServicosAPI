@@ -2,19 +2,24 @@
 using DevLearning.CategoryAPI.Services.Interfaces;
 using Domain.Models;
 using Domain.Models.DTOs.Category;
+using Domain.Models.DTOs.Course;
 
 namespace DevLearning.CategoryAPI.Services;
 
 public class CategoryService : ICategoryService
 {
-    private readonly ICategoryRepository _categoryRepository;
-    private readonly ILogger<CategoryService> _logger;
-
-    public CategoryService(ICategoryRepository categoryRepository, ILogger<CategoryService> logger)
+    public class CategoryService : ICategoryService
     {
-        _categoryRepository = categoryRepository;
-        _logger = logger;
-    }
+        private readonly ICategoryRepository _categoryRepository;
+        private readonly ILogger<CategoryService> _logger;
+        private readonly HttpClient _httpClientCourses;
+
+        public CategoryService(ICategoryRepository categoryRepository, ILogger<CategoryService> logger, IHttpClientFactory factory)
+        {
+            _categoryRepository = categoryRepository;
+            _logger = logger;
+            _httpClientCourses = factory.CreateClient("courseClient");
+        }
 
     private string GenerateUrl(string title)
     {
@@ -167,27 +172,41 @@ public class CategoryService : ICategoryService
             if (existing == null)
                 throw new KeyNotFoundException("Categoria não encontrada.");
 
-            if (await _categoryRepository.HasCourseAsync(id))
-                throw new ArgumentException("Não é possível deletar uma categoria que possui cursos associados.");
+                var client = _httpClientCourses;
 
-            await _categoryRepository.DeleteCategoryAsync(id);
+                var coursesClient = await client.GetFromJsonAsync<List<CourseResponseDTO>>($"/api/course/category/{id}");
+
+                if (coursesClient is not null)
+                    throw new ArgumentException("A categoria não deve conter cursos para ser removida");    
+
+                await _categoryRepository.DeleteCategoryAsync(id);
+                
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex.Message);
+                throw;
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex.Message);
-            throw;
-        }
-    }
-    public async Task<CategoryWithCoursesDTO> GetCategoryCoursesAsync(Guid categoryId)
-    {
-        try
-        {
-            var (categoryTitle, courses) = await _categoryRepository.GetCategoryCoursesAsync(categoryId);
+            try
+            {
+                var client = _httpClientCourses;
+                var categoryTitle = await _categoryRepository.GetCategoryCoursesAsync(categoryId);
 
             if (categoryTitle == null)
                 return null;
 
-            return new CategoryWithCoursesDTO
+                var coursesClient = await client.GetFromJsonAsync<List<CourseResponseDTO>>($"/api/course/category/{categoryId}");
+
+                return new CategoryWithCoursesDTO
+                {
+                    CategoryTitle = categoryTitle,
+                    Courses = coursesClient
+                };
+            }
+            catch (Exception ex)
             {
                 CategoryTitle = categoryTitle,
                 Courses = courses
