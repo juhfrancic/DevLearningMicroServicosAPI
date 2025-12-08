@@ -22,6 +22,7 @@ public class StudentRepository : IStudentRepository
     {
         try
         {
+
             await _students.InsertOneAsync(student);
         }
         catch (MongoException mongoEx)
@@ -31,6 +32,7 @@ public class StudentRepository : IStudentRepository
         catch (Exception ex)
         {
             throw new Exception(ex.Message);
+           
         }
     }
     public async Task InsertStudentCourse(ObjectId studentId, ObjectId courseId, StudentRequestInsertCourseDTO studentCourse)
@@ -39,8 +41,8 @@ public class StudentRepository : IStudentRepository
         {
             var SC = new StudentCourse
             (
-                courseId,
                 studentId,
+                courseId,
                 studentCourse.Progress ?? 0,
                 studentCourse.Favorite
             );
