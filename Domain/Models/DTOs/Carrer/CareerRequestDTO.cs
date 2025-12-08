@@ -1,5 +1,4 @@
-﻿using DevLearning.API.Models;
-using Domain.Models.DTOs.CareerItem;
+﻿using Domain.Models.DTOs.CareerItem;
 
 namespace Domain.Models.DTOs.Carrer
 {

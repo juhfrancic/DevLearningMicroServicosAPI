@@ -1,6 +1,7 @@
 ﻿namespace DevLearning.StudentAPI.Services.Interfaces
 {
-    public interface IServiceService
+    public interface IStudentService
     {
+
     }
 }

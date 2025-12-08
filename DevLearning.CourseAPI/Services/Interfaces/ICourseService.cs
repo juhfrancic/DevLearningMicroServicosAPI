@@ -1,5 +1,4 @@
-﻿using DevLearning.API.Models;
-using Domain.Models.DTOs.Course;
+﻿using Domain.Models.DTOs.Course;
 
 namespace DevLearning.CourseAPI.Services.Interfaces
 {

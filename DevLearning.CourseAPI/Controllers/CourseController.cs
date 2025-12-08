@@ -88,7 +88,7 @@ namespace DevLearning.CourseAPI.Controllers
         {
             try
             {
-                await _courseService.CreateCourseAsync(course);
+                //await _courseService.CreateCourseAsync(course);
                 return Created();
             }
             catch (ArgumentException ex)
@@ -132,7 +132,7 @@ namespace DevLearning.CourseAPI.Controllers
         {
             try
             {
-                await _courseService.UpdateActiveCourseByTitleAsync(title, update);
+                //await _courseService.UpdateActiveCourseByTitleAsync(title, update);
                 return Ok();
             }
             catch (ArgumentException ex)

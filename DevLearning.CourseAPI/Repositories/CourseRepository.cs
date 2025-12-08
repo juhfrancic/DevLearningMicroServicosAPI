@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Azure;
 using Dapper;
-using DevLearning.API.DataBase;
 using DevLearning.CourseAPI.Repositories.Interfaces;
 using Domain.Models;
 using Domain.Models.DTOs.Course;
+using Infrastructure.Data;
 using Microsoft.Data.SqlClient;
 
 namespace DevLearning.CourseAPI.Repositories

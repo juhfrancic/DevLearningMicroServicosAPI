@@ -1,8 +1,7 @@
 ﻿using Dapper;
-using DevLearning.API.DataBase;
-using DevLearning.API.Models;
 using DevLearning.CareerAPI.Repositories;
 using DevLearning.CareerAPI.Services.Interfaces;
+using Domain.Models;
 using Domain.Models.DTOs.Carrer;
 using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
