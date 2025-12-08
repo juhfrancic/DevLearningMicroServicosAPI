@@ -1,165 +1,149 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using Azure;
-using Dapper;
-using DevLearning.CourseAPI.Repositories.Interfaces;
+﻿using DevLearning.CourseAPI.Repositories.Interfaces;
+using Domain.Extensions;
 using Domain.Models;
 using Domain.Models.DTOs.Course;
-using Infrastructure.Data;
-using Microsoft.Data.SqlClient;
+using Infrastructure.Data.Mongo.Contexts;
+using MongoDB.Bson;
+using MongoDB.Driver;
 
-namespace DevLearning.CourseAPI.Repositories
+namespace DevLearning.CourseAPI.Repositories;
+
+public class CourseRepository(
+    MongoDbContext mongoDbContext
+    ) : ICourseRepository
 {
-    public class CourseRepository : ICourseRepository
+    private readonly IMongoCollection<Course> _courseCollection = mongoDbContext.Courses;
+    public async Task CreateCourseAsync(Course course)
     {
-        private readonly SqlConnection _connection;
-
-        public CourseRepository(ConnectionDB connection)
+        try
         {
-            _connection = connection.GetConnection();
+            await _courseCollection.InsertOneAsync(course);
         }
-
-        public async Task CreateCourseAsync(Course course)
+        catch (MongoException mongoEx)
         {
-            try
-            {
-                var sql = @"INSERT INTO Course(Id, Tag, Title, Summary, [Url], [Level], DurationInMinutes,
-                      CreateDate, LastUpdateDate, Active, Free, Featured, AuthorId, CategoryId, Tags) 
-                      VALUES(@Id, @Tag, @Title, @summary, @Url, @Level, @DurationInMinutes, @CreateDate, @LastUpdateDate,
-                      @Active, @Free, @Featured, @AuthorId, @CategoryId, @Tags)";
-
-                await _connection.ExecuteAsync(sql, new { course.Id, course.Tag, course.Title, course.Summary, course.Url, course.Level, course.DurationInMinutes, course.CreateDate, course.LastUpdateDate, course.Active, course.Free, course.Featured, course.AuthorId, course.CategoryId, course.Tags });
-            }
-            catch (SqlException ex)
-            {
-                throw new Exception(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+            throw new Exception(mongoEx.Message);
         }
-
-        public async Task<CourseResponseDTO> DeleteCourseByTitleAsync(string title)
+        catch (Exception ex)
         {
-            throw new NotImplementedException();
-        //    try
-        //    {
-
-        //        var sqlGetId = "SELECT Id FROM Course WHERE Title = @title";
-        //        var courseId = await _connection.ExecuteScalarAsync<int?>(sqlGetId, new { title });
-
-        //        var sqlCareer = @"DELETE FROM CouseCareer WHERE CourseId = @IdCurso";
-        //        await _connection.ExecuteAsync(sqlCareer, new { CourseId = courseId });
-
-        //        var sqlStudent = @"DELETE FROM CouseCareer WHERE CourseId = @IdCurso";
-        //        await _connection.ExecuteAsync(sqlCareer, new { CourseId = courseId });
-
-        //        var sql = @"DELETE FROM Course WHERE title = @title";
-        //        return (await _connection.QueryFirstOrDefaultAsync<CourseResponseDTO>(sql, new { title = title}));
-
-        //    }
-        //    catch (SqlException ex)
-        //    {
-        //        throw new Exception(ex.Message);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw new Exception(ex.Message);
-        //    }
+            throw new Exception(ex.Message);
         }
+    }
 
-        public async Task<List<CourseResponseDTO>> GetAllCoursesAsync(string category)
+    public Task<CourseResponseDTO> DeleteCourseByTitleAsync(string title)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<List<CourseResponseDTO>> GetAllCoursesAsync(string category)
+    {
+        try
         {
-            try
-            {
-                var sql = @"SELECT c.Id as CourseId, c.Tag, c.Title, c.Summary, c.[Url], c.[Level], c.DurationInMinutes,
-                       c.CreateDate, c.LastUpdateDate, c.Active, c.Free, c.Featured, a.[Name] AS authorName, 
-                       ca.Title AS categoryName, c.Tags FROM Course c
-                       JOIN Author a ON a.Id = c.AuthorId
-                       JOIN Category ca ON ca.Id = c.CategoryId
-                       WHERE (@categoria IS NULL OR ca.Title = @categoria) 
-                       ORDER BY c.Level ASC;";
+            var courses = await _courseCollection
+                .Find(course => course.CategoryName == category)
+                .ToListAsync();
 
-                return (await _connection.QueryAsync<CourseResponseDTO>(sql, new { categoria = category })).ToList();
-            }
-            catch (SqlException ex)
-            {
-                throw new Exception(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+            return [.. courses.Select(c => c.ToDto())];
         }
-
-        public async Task<CourseResponseDTO> GetOneCourseByTitleAsync(string title)
+        catch (MongoException mongoEx)
         {
-            try
-            {
-                var sql = @"SELECT c.Id AS CourseId, c.Tag, c.Title, c.Summary, c.[Url], c.[Level], c.DurationInMinutes,
-                       c.CreateDate, c.LastUpdateDate, c.Active, c.Free, c.Featured, a.[Name] AS authorName, 
-                       ca.Title AS categoryName, c.Tags FROM Course c
-                       JOIN Author a ON a.Id = c.AuthorId
-                       JOIN Category ca ON ca.Id = c.CategoryId WHERE c.title = @Titulo";
-
-                return (await _connection.QueryFirstOrDefaultAsync<CourseResponseDTO>(sql, new { Titulo = title }));
-            }
-            catch (SqlException ex)
-            {
-                throw new Exception(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+            throw new MongoException(mongoEx.Message);
         }
-
-        public async Task<CourseResponseDTO> GetOneCourseByIdAsync(Guid id)
+        catch (Exception ex)
         {
-            var sql = @"SELECT c.Tag, c.Title, c.Summary, c.[Url], c.[Level], c.DurationInMinutes,
-                       c.CreateDate, c.LastUpdateDate, c.Active, c.Free, c.Featured, a.[Name] AS authorName, 
-                       ca.Title AS categoryName, c.Tags FROM Course c
-                       JOIN Author a ON a.Id = c.AuthorId
-                       JOIN Category ca ON ca.Id = c.CategoryId WHERE c.Id = @Id";
-
-            return (await _connection.QueryFirstOrDefaultAsync<CourseResponseDTO>(sql, new { Id = id }));
+            throw new Exception(ex.Message);
         }
+    }
 
-        public async Task UpdateCourseByTitleAsync(string title, bool free, bool featured, DateTime lastUpdateDate)
+    public async Task<CourseResponseDTO> GetOneCourseByTitleAsync(string title)
+    {
+        try
         {
-            try
-            {
-                var sql = @"UPDATE Course SET Free = @free, Featured = @featured, LastUpdateDate = @lastUpdateDate WHERE Title = @Title";
+            var filter = Builders<Course>.Filter.Eq(c => c.Title, title);
+            var course = await _courseCollection.Find(filter).FirstOrDefaultAsync();
 
-                await _connection.ExecuteAsync(sql, new { Free = free, Featured = featured, LastUpdateDate = lastUpdateDate, Title = title });
-            }
-            catch (SqlException ex)
+            return course.ToDto();
+        }
+        catch (MongoException mongoEx)
+        {
+            throw new MongoException(mongoEx.Message);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+    }
+
+    public async Task<CourseResponseDTO> GetOneCourseByIdAsync(ObjectId id)
+    {
+        try
+        {
+            var course = await _courseCollection.Find(c => c.Id == id).FirstOrDefaultAsync();
+            return course.ToDto();
+        }
+        catch (MongoException mongoEx)
+        {
+            throw new Exception(mongoEx.Message);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+    }
+
+    public async Task UpdateCourseByTitleAsync(string title, bool free, bool featured)
+    {
+        try
+        {
+            var filter = Builders<Course>.Filter.Eq(c => c.Title, title);
+
+            var update = Builders<Course>.Update
+                .Set(c => c.Free, free)
+                .Set(c => c.Featured, featured)
+                .Set(c => c.LastUpdateDate, DateTime.UtcNow);
+
+            await _courseCollection.UpdateOneAsync(filter, update);
+        }
+        catch (MongoException mongoEx)
+        {
+            throw new MongoException(mongoEx.Message);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+    }
+
+    public async Task UpdateActiveCourseByTitleAsync(string title)
+    {
+        try
+        {
+            var course = await GetOneCourseByTitleAsync(title);
+            var filter = Builders<Course>.Filter.Eq(c => c.Title, title);
+
+            if (course.Active is true)
             {
-                throw new Exception(ex.Message);
+                var update = Builders<Course>.Update
+                    .Set(c => c.Active, false)
+                    .Set(c => c.LastUpdateDate, DateTime.UtcNow);
+
+                await _courseCollection.UpdateOneAsync(filter, update);
             }
-            catch (Exception ex)
+            else
             {
-                throw new Exception(ex.Message);
+                var update = Builders<Course>.Update
+                    .Set(c => c.Active, true)
+                    .Set(c => c.LastUpdateDate, DateTime.UtcNow);
+
+                await _courseCollection.UpdateOneAsync(filter, update);
             }
         }
-
-        public async Task UpdateActiveCourseByTitleAsync(string title, bool active, DateTime lastUpdateDate)
+        catch (MongoException mongoEx)
         {
-            try
-            {
-                var sql = @"UPDATE Course SET Active = @active, LastUpdateDate = @lastUpdateDate WHERE Title = @Title";
-                await _connection.ExecuteAsync(sql, new { active = active, LastUpdateDate = lastUpdateDate, Title = title });
-            }
-            catch (SqlException ex)
-            {
-                throw new Exception(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception(ex.Message);
-            }
+            throw new MongoException(mongoEx.Message);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 
-namespace DevLearning.CategoryAPI.Data
+namespace Infrastructure.Data.SQL.Contexts
 {
     public class ConnectionDBCategory
     {
@@ -8,7 +9,7 @@ namespace DevLearning.CategoryAPI.Data
 
         public ConnectionDBCategory(IConfiguration configuration)
         {
-            _connectionString = configuration.GetConnectionString("SqlConnectionCategory");
+            _connectionString = configuration.GetConnectionString("SqlConnectionCategory")!;
         }
 
         public SqlConnection GetConnection()

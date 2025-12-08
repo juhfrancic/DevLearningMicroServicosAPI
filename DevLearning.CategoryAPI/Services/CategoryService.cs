@@ -4,7 +4,9 @@ using Domain.Models;
 using Domain.Models.DTOs.Category;
 using Domain.Models.DTOs.Course;
 
-namespace DevLearning.CategoryAPI.Services
+namespace DevLearning.CategoryAPI.Services;
+
+public class CategoryService : ICategoryService
 {
     public class CategoryService : ICategoryService
     {
@@ -19,156 +21,156 @@ namespace DevLearning.CategoryAPI.Services
             _httpClientCourses = factory.CreateClient("courseClient");
         }
 
-        private string GenerateUrl(string title)
-        {
-            string newUrl = title.ToLower().Replace(" ", "-");
+    private string GenerateUrl(string title)
+    {
+        string newUrl = title.ToLower().Replace(" ", "-");
 
-            return $"www.devlearning.com.br/categoria/{newUrl}";
+        return $"www.devlearning.com.br/categoria/{newUrl}";
+    }
+
+
+    public async Task CreateCategoryAsync(CategoryRequestDTO categoryDto)
+    {
+        try
+        {
+            if (await _categoryRepository.CategoryTitleExistsAsync(categoryDto.Title))
+                throw new ArgumentException("Já existe uma categoria com este título");
+
+            await _categoryRepository.ShiftOrdersAsync(categoryDto.Order);
+
+            var url = GenerateUrl(categoryDto.Title);
+
+            var category = new Category(
+                categoryDto.Title,
+                url,
+                categoryDto.Summary,
+                categoryDto.Order,
+                categoryDto.Description,
+                false
+            );
+
+            await _categoryRepository.CreateCategoryAsync(category);
         }
-
-
-        public async Task CreateCategoryAsync(CategoryRequestDTO categoryDto)
+        catch (Exception ex)
         {
-            try
-            {
-                if (await _categoryRepository.CategoryTitleExistsAsync(categoryDto.Title))
-                    throw new ArgumentException("Já existe uma categoria com este título");
-
-                await _categoryRepository.ShiftOrdersAsync(categoryDto.Order);
-
-                var url = GenerateUrl(categoryDto.Title);
-
-                var category = new Category(
-                    categoryDto.Title,
-                    url,
-                    categoryDto.Summary,
-                    categoryDto.Order,
-                    categoryDto.Description,
-                    false
-                );
-
-                await _categoryRepository.CreateCategoryAsync(category);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw;
-            }
+            _logger.LogError(ex.Message);
+            throw;
         }
+    }
 
-        public async Task<List<CategoryResponseDTO>> GetAllCategoriesAsync()
+    public async Task<List<CategoryResponseDTO>> GetAllCategoriesAsync()
+    {
+        try
         {
-            try
-            {
-                return await _categoryRepository.GetAllCategoriesAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw;
-            }
+            return await _categoryRepository.GetAllCategoriesAsync();
         }
-        public async Task<CategoryResponseDTO> GetCategoryByIdAsync(Guid id)
+        catch (Exception ex)
         {
-            try
+            _logger.LogError(ex.Message);
+            throw;
+        }
+    }
+    public async Task<CategoryResponseDTO> GetCategoryByIdAsync(Guid id)
+    {
+        try
+        {
+            if (id == Guid.Empty)
+                throw new ArgumentException("Id inválido");
+
+            var category = await _categoryRepository.GetCategoryByIdAsync(id);
+
+            if (category == null)
+                throw new KeyNotFoundException("Categoria não encontrada");
+
+            return new CategoryResponseDTO
             {
-                if (id == Guid.Empty)
-                    throw new ArgumentException("Id inválido");
+                Id = category.Id,
+                Title = category.Title,
+                Url = category.Url,
+                Summary = category.Summary,
+                Order = category.Order,
+                Description = category.Description,
+                Featured = category.Featured
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            throw;
+        }
+    }
 
-                var category = await _categoryRepository.GetCategoryByIdAsync(id);
+    public async Task UpdateCategoryAsync(Guid id, CategoryUpdateDTO categoryDto)
+    {
+        try
+        {
+            if (id == Guid.Empty)
+                throw new ArgumentException("Id inválido.");
 
-                if (category == null)
-                    throw new KeyNotFoundException("Categoria não encontrada");
+            var existing = await _categoryRepository.GetCategoryByIdAsync(id);
 
-                return new CategoryResponseDTO
+            if (existing == null)
+                throw new KeyNotFoundException("Categoria não encontrada.");
+
+            if (!string.IsNullOrWhiteSpace(categoryDto.Title))
+            {
+                if (!string.Equals(existing.Title, categoryDto.Title, StringComparison.OrdinalIgnoreCase))
                 {
-                    Id = category.Id,
-                    Title = category.Title,
-                    Url = category.Url,
-                    Summary = category.Summary,
-                    Order = category.Order,
-                    Description = category.Description,
-                    Featured = category.Featured
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw;
-            }
-        }
-
-        public async Task UpdateCategoryAsync(Guid id, CategoryUpdateDTO categoryDto)
-        {
-            try
-            {
-                if (id == Guid.Empty)
-                    throw new ArgumentException("Id inválido.");
-
-                var existing = await _categoryRepository.GetCategoryByIdAsync(id);
-
-                if (existing == null)
-                    throw new KeyNotFoundException("Categoria não encontrada.");
-
-                if (!string.IsNullOrWhiteSpace(categoryDto.Title))
-                {
-                    if (!string.Equals(existing.Title, categoryDto.Title, StringComparison.OrdinalIgnoreCase))
-                    {
-                        if (await _categoryRepository.CategoryTitleExistsForOtherIdAsync(categoryDto.Title, id))
-                            throw new ArgumentException("Já existe uma categoria com este título.");
-                    }
-
-                    existing.SetTitle(categoryDto.Title);
-
-                    var newUrl = GenerateUrl(categoryDto.Title);
-                    existing.SetUrl(newUrl);
+                    if (await _categoryRepository.CategoryTitleExistsForOtherIdAsync(categoryDto.Title, id))
+                        throw new ArgumentException("Já existe uma categoria com este título.");
                 }
 
-                if (!string.IsNullOrWhiteSpace(categoryDto.Summary))
-                {
-                    existing.SetSummary(categoryDto.Summary);
-                }
+                existing.SetTitle(categoryDto.Title);
 
-                if (!string.IsNullOrWhiteSpace(categoryDto.Description))
-                {
-                    existing.SetDescription(categoryDto.Description);
-                }
-
-                if (categoryDto.Featured.HasValue)
-                {
-                    existing.SetFeatured(categoryDto.Featured.Value);
-                }
-
-                if (categoryDto.Order.HasValue && categoryDto.Order.Value != existing.Order)
-                {
-
-                    int oldOrder = existing.Order;
-
-                    existing.SetOrder(categoryDto.Order.Value);
-
-                    await _categoryRepository.ShiftOrdersForUpdateAsync(oldOrder, categoryDto.Order.Value, id);
-
-                }
-
-                await _categoryRepository.UpdateCategoryAsync(existing);
+                var newUrl = GenerateUrl(categoryDto.Title);
+                existing.SetUrl(newUrl);
             }
-            catch (Exception ex)
+
+            if (!string.IsNullOrWhiteSpace(categoryDto.Summary))
             {
-                _logger.LogError(ex.Message);
-                throw;
+                existing.SetSummary(categoryDto.Summary);
             }
+
+            if (!string.IsNullOrWhiteSpace(categoryDto.Description))
+            {
+                existing.SetDescription(categoryDto.Description);
+            }
+
+            if (categoryDto.Featured.HasValue)
+            {
+                existing.SetFeatured(categoryDto.Featured.Value);
+            }
+
+            if (categoryDto.Order.HasValue && categoryDto.Order.Value != existing.Order)
+            {
+
+                int oldOrder = existing.Order;
+
+                existing.SetOrder(categoryDto.Order.Value);
+
+                await _categoryRepository.ShiftOrdersForUpdateAsync(oldOrder, categoryDto.Order.Value, id);
+
+            }
+
+            await _categoryRepository.UpdateCategoryAsync(existing);
         }
-        public async Task DeleteCategoryAsync(Guid id)
+        catch (Exception ex)
         {
-            try
-            {
-                if (id == Guid.Empty)
-                    throw new ArgumentException("Id inválido.");
+            _logger.LogError(ex.Message);
+            throw;
+        }
+    }
+    public async Task DeleteCategoryAsync(Guid id)
+    {
+        try
+        {
+            if (id == Guid.Empty)
+                throw new ArgumentException("Id inválido.");
 
-                var existing = await _categoryRepository.GetCategoryByIdAsync(id);
+            var existing = await _categoryRepository.GetCategoryByIdAsync(id);
 
-                if (existing == null)
-                    throw new KeyNotFoundException("Categoria não encontrada.");
+            if (existing == null)
+                throw new KeyNotFoundException("Categoria não encontrada.");
 
                 var client = _httpClientCourses;
 
@@ -186,15 +188,15 @@ namespace DevLearning.CategoryAPI.Services
                 throw;
             }
         }
-        public async Task<CategoryWithCoursesDTO> GetCategoryCoursesAsync(Guid categoryId)
+        catch (Exception ex)
         {
             try
             {
                 var client = _httpClientCourses;
                 var categoryTitle = await _categoryRepository.GetCategoryCoursesAsync(categoryId);
 
-                if (categoryTitle == null)
-                    return null;
+            if (categoryTitle == null)
+                return null;
 
                 var coursesClient = await client.GetFromJsonAsync<List<CourseResponseDTO>>($"/api/course/category/{categoryId}");
 
@@ -206,9 +208,14 @@ namespace DevLearning.CategoryAPI.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex.Message);
-                throw;
-            }
+                CategoryTitle = categoryTitle,
+                Courses = courses
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            throw;
         }
     }
 }

@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 
-namespace Infrastructure.Data.Mongo.Context;
+namespace Infrastructure.Data.Mongo.Contexts;
 
 public class MongoDbContext
 {
@@ -19,4 +19,16 @@ public class MongoDbContext
 
     public IMongoCollection<Course> Courses
         => _database.GetCollection<Course>("Courses");
+
+    public IMongoCollection<Career> Careers
+        => _database.GetCollection<Career>("Career");
+
+    public IMongoCollection<CareerItem> CareerItems
+        => _database.GetCollection<CareerItem>("CareerItem");
+
+    public IMongoCollection<Student> Students
+       => _database.GetCollection<Student>("Students");
+
+    public IMongoCollection<StudentCourse> StudentCourses
+       => _database.GetCollection<StudentCourse>("StudentCourses");
 }

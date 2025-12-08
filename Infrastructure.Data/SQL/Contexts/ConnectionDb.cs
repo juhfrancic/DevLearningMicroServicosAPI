@@ -1,21 +1,10 @@
-﻿using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
+﻿using Domain.Models;
+using MongoDB.Driver;
 
 namespace Infrastructure.Data.SQL.Contexts
 {
-    public class ConnectionDB
+    public class ConnectionDb
     {
 
-        private readonly string _connectionString;
-
-        public ConnectionDB(IConfiguration configuration)
-        {
-            _connectionString = configuration.GetConnectionString("DefaultConnection");
-        }
-
-        public SqlConnection GetConnection()
-        {
-            return new SqlConnection(_connectionString);
-        }
     }
 }
