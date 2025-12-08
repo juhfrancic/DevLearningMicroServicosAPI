@@ -65,10 +65,11 @@ public class CategoryService : ICategoryService
             throw;
         }
     }
-    public async Task<CategoryResponseDTO> GetCategoryByIdAsync(Guid id)
+    public async Task<CategoryResponseDTO> GetCategoryByIdAsync(string idCategory)
     {
         try
         {
+            var id = Guid.Parse(idCategory);
             if (id == Guid.Empty)
                 throw new ArgumentException("Id inválido");
 

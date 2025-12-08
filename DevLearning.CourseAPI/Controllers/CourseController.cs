@@ -13,11 +13,11 @@ public class CourseController(
     private readonly CourseService _courseService = service;
 
     [HttpGet]
-    public async Task<ActionResult<List<CourseResponseDTO>>> GetAllCoursesAsync([FromQuery] string? category)
+    public async Task<ActionResult<List<CourseResponseDTO>>> GetAllCoursesAsync()
     {
         try
         {
-            var courses = await _courseService.GetAllCoursesAsync(category);
+            var courses = await _courseService.GetAllCoursesAsync();
 
             if (courses.Count is 0)
                 return NotFound("Register not found!");
