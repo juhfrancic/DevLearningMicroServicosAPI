@@ -1,7 +1,5 @@
 using DevLearning.CategoryAPI.Repositories;
-using DevLearning.CategoryAPI.Repositories.Interfaces;
 using DevLearning.CategoryAPI.Services;
-using DevLearning.CategoryAPI.Services.Interfaces;
 using Infrastructure.Data.SQL.Contexts;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,11 +9,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddSingleton<ConnectionDBCategory>();
 
-builder.Services.AddScoped<CourseRepository>();
+builder.Services.AddScoped<CategoryRepository>();
 builder.Services.AddScoped<CategoryService>();
 
-builder.Services.AddHttpClient("courseClient", client => client.BaseAddress = new Uri("https://localhost:7268"));
-
+builder.Services.AddHttpClient("courseClient", client =>
+    client.BaseAddress = new Uri("https://localhost:7268"));
 
 var app = builder.Build();
 
