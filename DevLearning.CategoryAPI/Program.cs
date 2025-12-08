@@ -16,7 +16,7 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<CourseRepository>();
 builder.Services.AddScoped<CategoryService>();
 
-
+builder.Services.AddHttpClient("courseClient", client => client.BaseAddress = new Uri("https://localhost:7268"));
 
 var app = builder.Build();
 

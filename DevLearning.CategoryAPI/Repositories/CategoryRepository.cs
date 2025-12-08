@@ -191,20 +191,7 @@ namespace DevLearning.CategoryAPI.Repositories
             }
         }
 
-        public async Task<bool> HasCourseAsync(Guid categoryId)
-        {
-            try
-            {
-                var sql = "SELECT COUNT(*) FROM Course WHERE CategoryId = @Id";
-                var count = await _connection.ExecuteScalarAsync<int>(sql, new { Id = categoryId });
-                return count > 0;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw;
-            }
-        }
+        
         public async Task DeleteCategoryAsync(Guid id)
         {
             try
@@ -219,27 +206,17 @@ namespace DevLearning.CategoryAPI.Repositories
             }
         }
 
-        public async Task<(string CategoryTitle, List<string> Courses)> GetCategoryCoursesAsync(Guid categoryId)
+        public async Task<string> GetCategoryCoursesAsync(Guid categoryId)
         {
             try
             {
-                var sql = @"SELECT cat.Title AS CategoryTitle, c.Title AS CourseTitle
+                var sql = @"SELECT cat.Title AS CategoryTitle
                         FROM Category cat
-                        LEFT JOIN Course c 
-                        ON cat.Id = c.CategoryId
                         WHERE cat.Id = @CategoryId";
 
-                var rows = await _connection.QueryAsync(sql, new { CategoryId = categoryId });
+                var rows = await _connection.QueryFirstOrDefaultAsync(sql, new { CategoryId = categoryId });
 
-                if (!rows.Any())
-                    return (null, new List<string>());
-
-                string categoryTitle = rows.First().CategoryTitle;
-                var courses = rows.Select(r => (string)r.CourseTitle)
-                                  .Where(c => c != null)
-                                  .ToList();
-
-                return (categoryTitle, courses);
+                return rows;
             }
             catch (Exception ex)
             {

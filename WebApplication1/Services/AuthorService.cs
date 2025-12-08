@@ -3,6 +3,7 @@ using DevLearning.AuthorAPI.Repositories.Interfaces;
 using DevLearning.AuthorAPI.Services.Interfaces;
 using Domain.Models;
 using Domain.Models.DTOs.Author;
+using Domain.Models.DTOs.Course;
 using Domain.Models.Enums.Author;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -12,10 +13,12 @@ namespace DevLearning.AuthorAPI.Services
     {
         private readonly ILogger<AuthorService> _logger;
         private readonly AuthorRepository _authorRepository;
-        public AuthorService(AuthorRepository authorRepository, ILogger<AuthorService> logger)
+        private readonly HttpClient _httpClientCourses;
+        public AuthorService(AuthorRepository authorRepository, ILogger<AuthorService> logger, IHttpClientFactory factory)
         {
             _authorRepository = authorRepository;
             _logger = logger;
+            _httpClientCourses = factory.CreateClient("courseClient");
         }
         public async Task<List<AuthorResponseDTO>> GetAllAuthorsAsync()
         {
@@ -120,15 +123,18 @@ namespace DevLearning.AuthorAPI.Services
         {
             try
             {
-                var (authorName, courses) = await _authorRepository.GetAuthorCoursesAsync(authorId);
+                var client = _httpClientCourses;
+                var authorName = await _authorRepository.GetAuthorCoursesAsync(authorId);
 
                 if (authorName == null)
                     return null;
 
+                var coursesClient = await client.GetFromJsonAsync<List<CourseResponseDTO>>($"/api/course/author/{authorId}");
+
                 return new AuthorWithCoursesDTO
                 {
                     AuthorName = authorName,
-                    Courses = courses
+                    Courses = coursesClient
                 };
             }
             catch( Exception ex)
