@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-builder.Services.AddSingleton<MongoDbContext>();
+builder.Services.AddSingleton<MongoDbContextCareer>();
 
 builder.Services.AddHttpClient("Course", course =>
 {

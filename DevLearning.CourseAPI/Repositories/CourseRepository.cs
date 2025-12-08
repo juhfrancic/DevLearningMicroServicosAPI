@@ -9,7 +9,7 @@ using MongoDB.Driver;
 namespace DevLearning.CourseAPI.Repositories;
 
 public class CourseRepository(
-    MongoDbContext mongoDbContext
+    MongoDbContextCourse mongoDbContext
     ) : ICourseRepository
 {
     private readonly IMongoCollection<Course> _courseCollection = mongoDbContext.Courses;
@@ -34,12 +34,49 @@ public class CourseRepository(
         throw new NotImplementedException();
     }
 
-    public async Task<List<CourseResponseDTO>> GetAllCoursesAsync(string category)
+    public async Task<List<CourseResponseDTO>> GetCoursesByAuthor(string idAuthor)
+    {
+        try
+        {
+            var filter = Builders<Course>.Filter.Eq(author => author.AuthorId, idAuthor);
+            var courses = await _courseCollection.Find(filter).ToListAsync();
+            return courses.Select(x => x.ToDto()).ToList();
+        }
+        catch (MongoException mongoEx)
+        {
+            throw new MongoException(mongoEx.Message);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+    }
+
+    public async Task<List<CourseResponseDTO>> GetCoursesByCategory(string idCategory)
+    {
+        try
+        {
+            var filter = Builders<Course>.Filter.Eq(category => category.CategoryId, idCategory);
+            var courses = await _courseCollection.Find(filter).ToListAsync();
+            return courses.Select(x => x.ToDto()).ToList();
+        }
+        catch (MongoException mongoEx)
+        {
+            throw new MongoException(mongoEx.Message);
+        }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+
+    }
+
+    public async Task<List<CourseResponseDTO>> GetAllCoursesAsync()
     {
         try
         {
             var courses = await _courseCollection
-                .Find(course => course.CategoryName == category)
+                .Find(_ => true)
                 .ToListAsync();
 
             return [.. courses.Select(c => c.ToDto())];

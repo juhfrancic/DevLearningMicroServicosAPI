@@ -202,23 +202,21 @@ public class CategoryRepository : ICategoryRepository
         }
     }
 
-    public async Task<(string CategoryTitle, List<string> Courses)> GetCategoryCoursesAsync(Guid categoryId)
+    public async Task<string> GetCategoryCoursesAsync(Guid categoryId)
     {
         try
         {
-            var sql = @"SELECT cat.Title AS CategoryTitle, c.Title AS CourseTitle
+            var sql = @"SELECT cat.Title
                         FROM Category cat
                         WHERE cat.Id = @CategoryId";
 
-                var rows = await _connection.QueryFirstOrDefaultAsync(sql, new { CategoryId = categoryId });
-
-                return rows;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex.Message);
-                throw;
-            }
+            var rows = await _connection.QueryFirstOrDefaultAsync(sql, new { CategoryId = categoryId });
+            return rows.Title;
+        }
+        catch (Exception ex)
+        {
+            throw;
         }
     }
 }
+

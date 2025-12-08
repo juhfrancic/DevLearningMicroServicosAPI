@@ -1,4 +1,5 @@
-﻿using DevLearning.CategoryAPI.Services.Interfaces;
+﻿using DevLearning.CategoryAPI.Services;
+using DevLearning.CategoryAPI.Services.Interfaces;
 using Domain.Models.DTOs.Category;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,10 +9,10 @@ namespace DevLearning.CategoryAPI.Controllers;
 [ApiController]
 public class CategoryController : ControllerBase
 {
-    private readonly ICategoryService _categoryService;
+    private readonly CategoryService _categoryService;
     private readonly ILogger<CategoryController> _logger;
 
-    public CategoryController(ICategoryService categoryService, ILogger<CategoryController> logger)
+    public CategoryController(CategoryService categoryService, ILogger<CategoryController> logger)
     {
         _categoryService = categoryService;
         _logger = logger;
@@ -53,7 +54,7 @@ public class CategoryController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<CategoryResponseDTO>> GetById(Guid id)
+    public async Task<ActionResult<CategoryResponseDTO>> GetById(string id)
     {
         try
         {

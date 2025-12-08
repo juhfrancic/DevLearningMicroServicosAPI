@@ -14,7 +14,7 @@ namespace DevLearning.CareerAPI.Repositories
 
         private readonly IMongoCollection<CareerItem> _careerItemsCollection;
 
-        public CareerRepository(MongoDbContext mongoDbContext)
+        public CareerRepository(MongoDbContextCareer mongoDbContext)
         {
             _careersCollection = mongoDbContext.Careers;
             _careerItemsCollection = mongoDbContext.CareerItems;

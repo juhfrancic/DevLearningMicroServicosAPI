@@ -36,7 +36,7 @@ namespace DevLearning.AuthorAPI.Controllers
 
         //Listar autor por Id
         [HttpGet("{id}")]
-        public async Task<ActionResult> GetAuthorById(Guid id)
+        public async Task<ActionResult> GetAuthorById(string id)
         {
             try
             {

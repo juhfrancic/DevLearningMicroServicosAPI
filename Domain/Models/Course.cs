@@ -1,11 +1,13 @@
 ﻿using Domain.Models.Enums.Course;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json.Serialization;
 
 namespace Domain.Models;
 
 public class Course
 {
+    [BsonRepresentation(BsonType.ObjectId)]
     public ObjectId Id { get; private set; }
     public string Tag { get; private set; }
     public string Title { get; private set; }
@@ -18,9 +20,9 @@ public class Course
     public bool Active { get; private set; }
     public bool Free { get; private set; }
     public bool Featured { get; private set; }
-    public Guid AuthorId { get; private set; }
+    public string AuthorId { get; private set; }
     public string AuthorName { get; private set; }
-    public Guid CategoryId { get; private set; }
+    public string CategoryId { get; private set; }
     public string CategoryName { get; private set; }
     public string Tags { get; private set; }
 
@@ -41,7 +43,9 @@ public class Course
         bool free,
         bool featured,
         Guid authorId,
+        string nameAuthor,
         Guid categoryId,
+        string nameCategory,
         string tags)
     {
         Tag = tag;
@@ -55,8 +59,10 @@ public class Course
         Active = active;
         Free = free;
         Featured = featured;
-        AuthorId = authorId;
-        CategoryId = categoryId;
+        AuthorId = authorId.ToString();
+        AuthorName = nameAuthor;
+        CategoryId = categoryId.ToString();
+        CategoryName = nameCategory;
         Tags = tags;
     }
 }

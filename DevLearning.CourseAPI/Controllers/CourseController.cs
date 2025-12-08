@@ -13,11 +13,11 @@ public class CourseController(
     private readonly CourseService _courseService = service;
 
     [HttpGet]
-    public async Task<ActionResult<List<CourseResponseDTO>>> GetAllCoursesAsync([FromQuery] string? category)
+    public async Task<ActionResult<List<CourseResponseDTO>>> GetAllCoursesAsync()
     {
         try
         {
-            var courses = await _courseService.GetAllCoursesAsync(category);
+            var courses = await _courseService.GetAllCoursesAsync();
 
             if (courses.Count is 0)
                 return NotFound("Register not found!");
@@ -83,6 +83,42 @@ public class CourseController(
         catch (Exception ex)
         {
             return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    [HttpGet("author/{idAuthor}")]
+    public async Task<ActionResult<List<CourseResponseDTO>>> GetCourseByAuthor(string idAuthor)
+    {
+        try
+        {
+            var courses = await _courseService.GetCoursesByAuthor(idAuthor);
+
+            if (courses is null)
+                return NotFound("Register not found");
+
+            return Ok(courses);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
+        }
+    }
+
+    [HttpGet("category/{idCategory}")]
+    public async Task<ActionResult<List<CourseResponseDTO>>> GetCourseByCategory(string idCategory)
+    {
+        try
+        {
+            var courses = await _courseService.GetCoursesByCategory(idCategory);
+
+            if (courses is null)
+                return NotFound("Register not found");
+
+            return Ok(courses);
+        }
+        catch (Exception ex)
+        {
+            return Problem(ex.Message);
         }
     }
 
