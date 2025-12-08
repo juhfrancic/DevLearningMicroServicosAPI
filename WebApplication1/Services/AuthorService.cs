@@ -1,62 +1,99 @@
-﻿using Azure;
-using DevLearning.API.Models;
-using DevLearning.AuthorAPI.Repositories;
+﻿using DevLearning.AuthorAPI.Repositories;
 using DevLearning.AuthorAPI.Services.Interfaces;
+using Domain.Models;
 using Domain.Models.DTOs.Author;
+using Domain.Models.DTOs.Course;
 using Domain.Models.Enums.Author;
-using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace DevLearning.AuthorAPI.Services
+namespace DevLearning.AuthorAPI.Services;
+
+public class AuthorService : IAuthorService
 {
-    public class AuthorService : IAuthorService
+    private readonly ILogger<AuthorService> _logger;
+    private readonly AuthorRepository _authorRepository;
+    private readonly HttpClient _httpClientCourses;
+    public AuthorService(AuthorRepository authorRepository, ILogger<AuthorService> logger, IHttpClientFactory factory)
     {
-        private AuthorRepository _authorRepository;
-        public AuthorService(AuthorRepository authorRepository)
-        {
-            _authorRepository = authorRepository;
-        }
-        public async Task<List<AuthorResponseDTO>> GetAllAuthorsAsync()
+        _authorRepository = authorRepository;
+        _logger = logger;
+        _httpClientCourses = factory.CreateClient("courseClient");
+    }
+    public async Task<List<AuthorResponseDTO>> GetAllAuthorsAsync()
+    {
+        try
         {
             return await _authorRepository.GetAllAuthorsAsync();
         }
-        public async Task<AuthorResponseDTO> GetAuthorByIdAsync(Guid id)
+        catch (Exception ex)
         {
-            return await _authorRepository.GetAuthorByIdAsync(id);
+            _logger.LogError(ex.Message);
+            throw;
         }
-
-        public async Task CreateAuthorAsync(AuthorRequestDTO author)
+    }
+    public async Task<AuthorResponseDTO> GetAuthorByIdAsync(string id)
+    {
+        try
         {
-            try
-            {
-                var findAuthor = await _authorRepository.GetAuthorByEmail(author.Email);
-                if (findAuthor is null)
-                {
-                    var newAuthor = new Author(author.Name, author.Title, author.Image, author.Bio, author.Email);
-                    await _authorRepository.CreateAuthorAsync(newAuthor);
+            return await _authorRepository.GetAuthorByIdAsync(Guid.Parse(id));
+        }
+        catch(Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            throw;
+        }
+    }
 
-                }
-                else
-                {
-                    throw new Exception("O autor já existe.");
-                }
-            }
-            catch (Exception ex)
+    public async Task CreateAuthorAsync(AuthorRequestDTO author)
+    {
+        try
+        {
+            var findAuthor = await _authorRepository.GetAuthorByEmail(author.Email);
+            if (findAuthor is null)
             {
-                throw new Exception(ex.Message);
+                var newAuthor = new Author(author.Name, author.Title, author.Image, author.Bio, author.Email);
+                await _authorRepository.CreateAuthorAsync(newAuthor);
+
+            }
+            else
+            {
+                throw new Exception("O autor já existe.");
             }
         }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+    }
 
 
-        public async Task UpdatePatchAuthorAsync(Guid id, UpdateAuthorParcialDTO dto)
+    public async Task UpdatePatchAuthorAsync(Guid id, UpdateAuthorParcialDTO dto)
+    {
+        try
         {
             await _authorRepository.UpdatePatchAuthorAsync(dto, id);
         }
-        public async Task UpdatePutAuthorAsync(Guid id, UpdateAuthorFullDTO dto)
+        catch( Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            throw;
+        }
+    }
+    public async Task UpdatePutAuthorAsync(Guid id, UpdateAuthorFullDTO dto)
+    {
+        try
         {
             await _authorRepository.UpdatePutAuthorAsync(dto, id);
         }
+        catch( Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            throw;
+        }
+    }
 
-        public async Task UpdateAuthorTypeAsync(Guid id, AuthorType newType)
+    public async Task UpdateAuthorTypeAsync(Guid id, AuthorType newType)
+    {
+        try
         {
             // valida enum
             if (!Enum.IsDefined(typeof(AuthorType), newType))
@@ -72,20 +109,36 @@ namespace DevLearning.AuthorAPI.Services
 
             await _authorRepository.UpdateAuthorTypeAsync(id, newType);
         }
-
-
-        public async Task<AuthorWithCoursesDTO> GetAuthorCoursesAsync(Guid authorId)
+        catch( Exception ex)
         {
-            var (authorName, courses) = await _authorRepository.GetAuthorCoursesAsync(authorId);
+            _logger.LogError(ex.Message);
+            throw;
+        }
+    }
+
+
+    public async Task<AuthorWithCoursesDTO> GetAuthorCoursesAsync(Guid authorId)
+    {
+        try
+        {
+            var client = _httpClientCourses;
+            var authorName = await _authorRepository.GetAuthorCoursesAsync(authorId);
 
             if (authorName == null)
                 return null;
 
+            var coursesClient = await client.GetFromJsonAsync<List<CourseResponseDTO>>($"/api/course/author/{authorId}");
+
             return new AuthorWithCoursesDTO
             {
                 AuthorName = authorName,
-                Courses = courses
+                Courses = coursesClient
             };
+        }
+        catch( Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            throw;
         }
     }
 }

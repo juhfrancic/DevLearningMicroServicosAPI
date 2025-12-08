@@ -1,8 +1,19 @@
+using DevLearning.AuthorAPI.Repositories;
+using DevLearning.AuthorAPI.Services;
+using Infrastructure.Data.SQL.Contexts;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.AddScoped<ConnectionDBAuthor>();
+
+builder.Services.AddScoped<AuthorRepository>();
+builder.Services.AddScoped<AuthorService>();
+
+builder.Services.AddHttpClient("courseClient", client => 
+    client.BaseAddress = new Uri("https://localhost:7268"));
 
 var app = builder.Build();
 

@@ -1,14 +1,11 @@
-﻿using DevLearning.API.Models;
-using Domain.Models.DTOs.CareerItem;
+﻿namespace Domain.Models.DTOs.Carrer;
 
-namespace Domain.Models.DTOs.Carrer
+public class CareerRequestDTO
 {
-    public class CareerRequestDTO
-    {
-        public string Title { get; init; }
-        public string Summary { get; init; }
-        public int DurationInMinutes { get; init; }
-        public string Tags { get; init; }
-        public List<CareerItemRequestCreateDTO> careerItems {get; init;}
-    }
+    public string Title { get; set; }
+    public string Summary { get; set; }
+    public string Url { get; set; }
+    public bool Featured { get; set; }
+    public string Tags { get; set; }
+
 }

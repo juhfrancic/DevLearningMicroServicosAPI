@@ -1,114 +1,182 @@
 ﻿using DevLearning.CareerAPI.Services;
+using DevLearning.CareerAPI.Services.Interfaces;
+using Domain.Models.DTOs.CareerItem;
 using Domain.Models.DTOs.Carrer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 
 namespace DevLearning.CareerAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-
-
     public class CareerController : ControllerBase
     {
+        public readonly ICareerService _careerService;
 
-        public readonly CareerService careerService;
-        private readonly ILogger<CareerController> logger;
-
-        public CareerController(ILogger<CareerController> logger, CareerService careerService)
+        public CareerController(ICareerService careerService)
         {
-            this.careerService = careerService;
-            this.logger = logger;
+            this._careerService = careerService;
         }
 
-
         [HttpPost]
-        public async Task<ActionResult> CreateCareer([FromBody] CareerRequestDTO careerDTO)
+        public async Task<ActionResult> CreateCareerAsync([FromBody] CareerRequestDTO careerDTO)
         {
             try
             {
-                await careerService.CreateCareerAsync(careerDTO);
+                await _careerService.CreateCareerAsync(careerDTO);
                 return Created();
+            }
+            catch (ArgumentException ex)
+            {
+                return StatusCode(400, new { error = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(400, new { error = ex.Message });
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"Erro ao criar carreira: {ex.Message}");
-                return StatusCode(500, $"{ex.Message}");
+                return StatusCode(500, new { error = ex.Message });
             }
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<CareerResponseDTO>>> GetAllCareers()
+        public async Task<ActionResult<List<CareerResponseDto>>> GetAllCareersAsync()
         {
             try
             {
-                var careers = await careerService.GetAllCareerAsync();
+                var careers = (await _careerService.GetAllCareersAsync()).ToList();
+
+                if (careers.Count is 0)
+                    return NotFound("Register not found!");
+
                 return Ok(careers);
+                
+            }
+            catch (ArgumentException ex)
+            {
+                return StatusCode(400, new { error = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(400, new { error = ex.Message });
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"Erro ao listar todas as carreiras: {ex.Message}");
-                return StatusCode(500, $"{ex.Message}");
+                return StatusCode(500, new { error = ex.Message });
             }
         }
 
         [HttpGet("{careerId}")]
-        public async Task<ActionResult<CareerResponseDTO>> GetCareerById(Guid careerId)
+        public async Task<ActionResult<CareerResponseDto>> GetCareerByIdAsync(string careerId)
         {
             try
             {
-                var careerData = await careerService.GetCareerByIdAsync(careerId);
-                if (careerData == null)
-                {
-                    return NotFound();
-                }
+                var careerData = await _careerService.GetCareerByIdAsync(careerId);
                 return Ok(careerData);
+            }
+            catch (ArgumentException ex)
+            {
+                return StatusCode(400, new { error = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(400, new { error = ex.Message });
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"Erro ao buscar carreira por ID: {ex.Message}");
-                return StatusCode(500, $"{ex.Message}");
+                return StatusCode(500, new { error = ex.Message });
             }
         }
 
         [HttpPut("{careerId}")]
-        public async Task<ActionResult> UpdateCareer(Guid careerId, [FromBody] CareerUpdateDTO careerDTO)
+        public async Task<ActionResult> UpdateCareerAsync(string careerId, [FromBody] CareerUpdateDTO careerDTO)
         {
             try
             {
-                var result = await careerService.UpdateCareerAsync(careerId, careerDTO);
-                if (result is false)
-                {
-                    return NotFound();
-                }
+                await _careerService.UpdateCareerAsync(careerId, careerDTO);
                 return NoContent();
-
+            }
+            catch (ArgumentException ex)
+            {
+                return StatusCode(400, new { error = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(400, new { error = ex.Message });
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"Erro ao atualizar carreira por ID: {ex.Message}");
-                return StatusCode(500, $"{ex.Message}");
+                return StatusCode(500, new { error = ex.Message });
             }
         }
 
         [HttpDelete("{careerId}")]
-        public async Task<ActionResult> DeleteCareer(Guid careerId)
+        public async Task<ActionResult> UpdateActiveCareerAsync(string careerId)
         {
             try
             {
-                var result =  await careerService.DeleteCareerAsync(careerId);
-                if (result is false)
-                {
-                    return NotFound();
-                }
+                await _careerService.UpdateActiveCareerAsync(careerId);
                 return NoContent();
-
+            }
+            catch (ArgumentException ex)
+            {
+                return StatusCode(400, new { error = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return StatusCode(400, new { error = ex.Message });
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"Erro ao buscar deletar carreira por ID: {ex.Message}");
-                return StatusCode(500, $"{ex.Message}");
+                return StatusCode(500, new { error = ex.Message });
             }
         }
+
+        [HttpPost("{careerId}/items")]
+        public async Task<ActionResult> AddItemCareerAsync(string careerId, [FromBody] CareerItemRequestDTO careerItemDTO)
+        {
+            try
+            {
+                await _careerService.AddItemCareerAsync(careerId, careerItemDTO);
+                return Created();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
+        [HttpDelete("{careerId}/items/{courseId}")]
+        public async Task<ActionResult> RemoveItemCareerAsync(string careerId, string courseId)
+        {
+            try
+            {
+                await _careerService.RemoveItemCareerAsync(careerId, courseId);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
     }
 }

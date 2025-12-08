@@ -1,9 +1,6 @@
-﻿using DevLearning.API.Models.DTOs.Course;
+﻿namespace Domain.Models.DTOs.Student;
 
-namespace Domain.Models.DTOs.Student
+public class StudentResponseWithCourseDTO
 {
-    public class StudentResponseWithCourseDTO
-    {
-        public StudentResponseDTO Student { get; set; }
-    }
+    public StudentResponseDTO Student { get; set; }
 }

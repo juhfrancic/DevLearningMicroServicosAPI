@@ -1,190 +1,238 @@
-﻿using Dapper;
-using DevLearning.API.DataBase;
-using DevLearning.API.Models;
 using DevLearning.CareerAPI.Repositories;
 using DevLearning.CareerAPI.Services.Interfaces;
+﻿using DevLearning.CareerAPI.Repositories.Interfaces;
+using Domain.Models;
+using Domain.Models.DTOs.CareerItem;
 using Domain.Models.DTOs.Carrer;
-using Microsoft.Data.SqlClient;
-using Microsoft.IdentityModel.Tokens;
+using MongoDB.Bson;
+using MongoDB.Driver;
 
-namespace DevLearning.CareerAPI.Services
+namespace DevLearning.CareerAPI.Services;
+
+public class CareerService : ICareerService
 {
-    public class CareerService : ICareerService
+    private readonly ICareerRepository _careerRepository;
+
+   // private readonly IHttpClientFactory _httpClientFactory;
+
+    public CareerService(ICareerRepository careerRepository/*, IHttpClientFactory httpClientFactory*/)
     {
-        public readonly CareerRepository careerRepository;
-        private readonly ILogger<CareerService> logger;
-        public CareerService(ILogger<CareerService> logger, CareerRepository careerRepository)
+        _careerRepository = careerRepository;
+       // _httpClientFactory = httpClientFactory;
+    }
+
+    //aqui
+    public async Task AddItemCareerAsync(string careerId, CareerItemRequestDTO careerItemDTO)
+    {
+        //var client = _httpClientFactory.CreateClient("Course");
+
+        if (!ObjectId.TryParse(careerId, out ObjectId careerObjectId))
+            throw new ArgumentException("The ID is not in ObjectId format", nameof(careerId));
+
+        if (!ObjectId.TryParse(careerItemDTO.CourseId, out ObjectId courseObjectId))
+            throw new ArgumentException("The ID is not in ObjectId format", nameof(careerItemDTO.CourseId));
+
+        //var course = client.GetFromJsonAsync<Course>($"api/Course/get-by-title/{careerItemDTO.Title}") 
+        //    ?? throw new Exception("Register not found!");
+
+        if (careerItemDTO.Order <= 0)
+            throw new ArgumentException("Order must be greater than 0!");
+
+        try
         {
-            this.careerRepository = careerRepository;
-            this.logger = logger;
-        }
+            var existing = await _careerRepository.GetCareerByIdAsync(careerObjectId);
+            if (existing is null)
+                throw new KeyNotFoundException("Career not found!");
 
-        public async Task CreateCareerAsync(CareerRequestDTO careerDTO)
+            var item = new CareerItem(careerObjectId, courseObjectId, careerItemDTO.Title, careerItemDTO.Description, careerItemDTO.Order);
+
+            await _careerRepository.AddItemCareerAsync(item);
+        }
+        catch (KeyNotFoundException) { throw; }
+        catch (ArgumentException) { throw; }
+        catch (Exception ex)
         {
-            try
-
-            {
-                bool retorno = await careerRepository.GetCareerByTitleAsync(careerDTO.Title);
-                if(retorno is true)
-                {
-                    throw new Exception("Já existe uma carreira com esse título.");
-                }
-
-                var career = new Career(
-                   careerDTO.Title,
-                   careerDTO.Summary,
-                   careerDTO.Title.ToLower().Replace(" ", "-"),
-                   careerDTO.DurationInMinutes,
-                   careerDTO.Tags
-                );
-                var careerItems = careerDTO.careerItems.Select(itemDTO => new CareerItem(
-                    career.Id,
-                    itemDTO.CourseId,
-                    itemDTO.Title,
-                    itemDTO.Description,
-                    itemDTO.Order
-                )).ToList();
-                foreach (var item in careerItems)
-                {
-                    career.AddItem(item);
-                }
-                await careerRepository.CreateCareerAsync(career);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Erro interno ao criar carreira e item carreira: {ex.Message}");
-                throw;
-            }
+            throw new Exception(ex.Message);
         }
-        public async Task<List<CareerWhitCareerItemResponseDTO>> GetAllCareerAsync()
+    }
+
+    public async Task CreateCareerAsync(CareerRequestDTO careerDTO)
+    {
+        if (string.IsNullOrEmpty(careerDTO.Title))
+            throw new ArgumentException("This title is required!");
+
+        var career = new Career(careerDTO.Title, careerDTO.Summary, careerDTO.Url, careerDTO.Tags, careerDTO.Featured);
+
+        try
         {
-            try { 
-                
-                var careers = await careerRepository.GetAllCareerWithCareerItem();
-                if (careers.Count == 0)
-                {
-                    throw new Exception("Ainda não há nenhuma carreira cadastrada");
-                }
-
-                return careers;
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Erro interno ao listar todas as carreiras: {ex.Message}");
-                throw;
-            }
+            await _careerRepository.CreateCareerAsync(career);
         }
-
-        public async Task<CareerWhitCareerItemResponseDTO?> GetCareerByIdAsync(Guid careerId)
+        catch (Exception ex)
         {
-            try
-            {
-                var career = await careerRepository.GetOneCareerWithCareerItem(careerId);
-                if (career == null)
-                {
-                    throw new Exception("Carreira não encontrada");
-                }
-                return career;
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Erro interno ao buscar carreira por ID: {ex.Message}");
-                throw;
-            }
+            throw new Exception(ex.Message);
         }
+    }
 
-        public async Task<bool> DeleteCareerAsync(Guid careerId)
+    public async Task<List<CareerResponseDto>> GetAllCareersAsync()
+    {
+        try
         {
-            try
+            var careers = (await _careerRepository.GetAllCareersAsync()).ToList();
+
+            var dtos = careers.Select(c => new CareerResponseDto
             {
-                var career = await careerRepository.GetOneCareerWithCareerItem(careerId);
-                if (career == null)
+                Id = c.Id.ToString(),
+                Title = c.Title,
+                Summary = c.Summary,
+                Url = c.Url,
+                DurationInMinutes = c.DurationInMinutes,
+                Active = c.Active,
+                Featured = c.Featured,
+                Tags = c.Tags,
+                Items = c.Items.Select(i => new CareerItemResponseDto
                 {
-                    throw new Exception("Carreira não encontrada");
-                }
+                    CourseId = i.CourseId.ToString(),
+                    Title = i.Title,
+                    Description = i.Description,
+                    Order = i.Order
+                }).ToList()
+            }).ToList();
 
-                var result = await careerRepository.DeleteCareerAsync(careerId);
-                return result;
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Erro interno ao deletar carreira: {ex.Message}");
-                throw;
-            }
+            return dtos;
         }
-
-        public async Task<bool> UpdateCareerAsync(Guid id, CareerUpdateDTO updateDTO)
+        catch (Exception ex)
         {
-            try
-            {
-
-                var existingCareer = await careerRepository.GetOneCareerWithCareerItem(id);
-                if(existingCareer == null)
-                {
-                    throw new Exception("Carreira não encontrada.");
-                }
-
-                
-                var updates = new List<string>();
-                var parameters = new DynamicParameters();
-                parameters.Add("Id", id);
-
-                if (!string.IsNullOrEmpty(updateDTO.Title))
-                {
-                    bool retorno = await careerRepository.GetCareerByTitleAsync(updateDTO.Title);
-                    if (retorno is true)
-                    {
-                        throw new Exception("Já existe uma carreira com esse título.");
-                    }
-
-                    updates.Add("Title = @Title");
-                    parameters.Add("Title", updateDTO.Title);
-                    updates.Add("Url = @Url");
-                    parameters.Add("Url", updateDTO.Title.ToLower().Replace(" ", "-"));
-                }
-
-                if (!string.IsNullOrEmpty(updateDTO.Summary))
-                {
-                    updates.Add("Summary = @Summary");
-                    parameters.Add("Summary", updateDTO.Summary);
-                }
-
-                if (updateDTO.DurationInMinutes.HasValue)
-                {
-                    updates.Add("DurationInMinutes = @DurationInMinutes");
-                    parameters.Add("DurationInMinutes", updateDTO.DurationInMinutes.Value);
-                }
-
-                if (updateDTO.Active.HasValue)
-                {
-                    updates.Add("Active = @Active");
-                    parameters.Add("Active", updateDTO.Active.Value);
-                }
-
-                if (updateDTO.Featured.HasValue)
-                {
-                    updates.Add("Featured = @Featured");
-                    parameters.Add("Featured", updateDTO.Featured.Value);
-                }
-
-                if (!string.IsNullOrEmpty(updateDTO.Tags))
-                {
-                    updates.Add("Tags = @Tags");
-                    parameters.Add("Tags", updateDTO.Tags);
-                }
-
-
-
-                var result = await careerRepository.UpdateCareerAsync(id, updates, parameters);
-                return result;
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Erro interno ao atualizar carreira: {ex.Message}");
-                throw;
-            }
+            throw new Exception(ex.Message);
         }
+    }
+
+    public async Task<CareerResponseDto> GetCareerByIdAsync(string careerId)
+    {
+        if (!ObjectId.TryParse(careerId, out ObjectId objectId))
+            throw new ArgumentException("The ID is not in ObjectId format", nameof(careerId));
+        
+        try
+        {
+            var career = await _careerRepository.GetCareerByIdAsync(objectId);
+
+            if (career is null)
+                throw new KeyNotFoundException("Career not found!");
+
+            var dto = new CareerResponseDto
+            {
+                Id = career.Id.ToString(),
+                Title = career.Title,
+                Summary = career.Summary,
+                Url = career.Url,
+                DurationInMinutes = career.DurationInMinutes,
+                Active = career.Active,
+                Featured = career.Featured,
+                Tags = career.Tags,
+                Items = career.Items.Select(i => new CareerItemResponseDto
+                {
+                    CourseId = i.CourseId.ToString(),
+                    Title = i.Title,
+                    Description = i.Description,
+                    Order = i.Order
+                }).ToList()
+            };
+
+            return dto;
+        }
+        catch (KeyNotFoundException) { throw; }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+    }
+
+    public async Task RemoveItemCareerAsync(string careerId, string courseId)
+    {
+
+        if (!ObjectId.TryParse(careerId, out ObjectId careerObjectId))
+            throw new ArgumentException("The Career ID is not in ObjectId format", nameof(careerId));
+
+        if (!ObjectId.TryParse(courseId, out ObjectId courseObjectId))
+            throw new ArgumentException("The Course ID is not in ObjectId format", nameof(courseId));
+
+        try
+        {
+            var existingCareer = await _careerRepository.GetCareerByIdAsync(careerObjectId);
+            if (existingCareer is null)
+                throw new KeyNotFoundException("Career not found!");
+
+            var removed = await _careerRepository.RemoveItemCareerAsync(careerObjectId, courseObjectId);
+
+            if (!removed)
+                throw new KeyNotFoundException("This course doesn't belong to this career.");
+        }
+        catch (KeyNotFoundException) { throw; }
+        catch (ArgumentException) { throw; }
+        catch (Exception ex)
+        {
+
+            throw new Exception(ex.Message);
+        }
+    }
+
+    public async Task UpdateActiveCareerAsync(string careerId)
+    {
+
+        if (!ObjectId.TryParse(careerId, out ObjectId objectId))
+            throw new ArgumentException("The ID is not in ObjectId format", nameof(careerId));
+
+        try
+        {
+            var existing = await _careerRepository.GetCareerByIdAsync(objectId);
+            if (existing is null)
+                throw new KeyNotFoundException("Career not found!");
+
+            await _careerRepository.UpdateActiveCareerAsync(objectId);
+        }
+        catch (KeyNotFoundException) { throw; }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+    }
+
+    public async Task UpdateCareerAsync(string careerId, CareerUpdateDTO careerDTO)
+    {
+
+        if (!ObjectId.TryParse(careerId, out ObjectId objectId))
+            throw new ArgumentException("The ID is not in ObjectId format", nameof(careerId));
+
+        try
+        {
+            var existing = await _careerRepository.GetCareerByIdAsync(objectId);
+            if (existing is null)
+                throw new KeyNotFoundException("Career not found!");
 
 
+            var updated = new Career(objectId, careerDTO.Title, careerDTO.Summary, careerDTO.Url,
+                                     existing.DurationInMinutes, careerDTO.Active, careerDTO.Featured, careerDTO.Tags);
+
+            await _careerRepository.UpdateCareerAsync(updated);
+        }
+        catch (KeyNotFoundException) { throw; }
+        catch (Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+    }
+
+    //aqui
+    public async Task RemoveItemByCourseAsync(string courseId)
+    {
+
+        if (!ObjectId.TryParse(courseId, out ObjectId objectId))
+            throw new ArgumentException("The ID is not in ObjectId format", nameof(courseId));
+
+        var careerIds = await _careerRepository.GetItemByCourseAsync(objectId);
+
+        foreach (var careerId in careerIds)
+        {
+            await _careerRepository.RemoveItemByCourseAsync(careerId, objectId);
+        }
     }
 }

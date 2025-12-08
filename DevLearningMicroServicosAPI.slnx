@@ -11,5 +11,6 @@
   </Folder>
   <Folder Name="/3- Infrastructure/">
     <Project Path="Infrastructure.Data/Infrastructure.Data.csproj" Id="a8c9f11d-6f3a-4751-bd20-2c6d8478ac3e" />
+    <Project Path="Infrastructure.Service/Infrastructure.Service.csproj" Id="de870ed2-d1c9-4ead-97b8-76c1f7bd04bb" />
   </Folder>
 </Solution>

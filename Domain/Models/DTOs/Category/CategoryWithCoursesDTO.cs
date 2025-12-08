@@ -1,8 +1,10 @@
-﻿namespace Domain.Models.DTOs.Category
+﻿using Domain.Models.DTOs.Course;
+
+namespace Domain.Models.DTOs.Category
 {
     public class CategoryWithCoursesDTO
     {
         public string CategoryTitle { get; set; }
-        public List<string> Courses { get; set; } = new List<string>();
+        public List<CourseResponseDTO> Courses { get; set; }
     }
 }
