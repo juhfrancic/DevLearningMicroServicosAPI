@@ -20,7 +20,7 @@ namespace DevLearning.CareerAPI.Repositories
             _careerItemsCollection = mongoDbContext.CareerItems;
         }
 
-        public async Task AddItemCareerAsync(CareerItem careerItem)
+        public async Task AddItemCareerAsync(CareerItem careerItem, int duration, Career career)
         {
             try
             {
@@ -29,9 +29,9 @@ namespace DevLearning.CareerAPI.Repositories
                 var filter = Builders<Career>.Filter.Eq(career => career.Id, careerItem.CareerId);
 
                 var update = Builders<Career>.Update.Push(c => c.Items, careerItem);
+                var updateDuration = Builders<Career>.Update.Set(c => c.DurationInMinutes, career.DurationInMinutes + duration);
                 await _careersCollection.UpdateOneAsync(filter, update);
 
-                //ARRUMAR OS MINUTOS var durationInMinutesCourse = 
             }
             catch (MongoException mongoEx)
             {

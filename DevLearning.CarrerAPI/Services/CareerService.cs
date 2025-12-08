@@ -6,6 +6,7 @@ using Domain.Models.DTOs.CareerItem;
 using Domain.Models.DTOs.Carrer;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using Domain.Models.DTOs.Course;
 
 namespace DevLearning.CareerAPI.Services;
 
@@ -13,18 +14,18 @@ public class CareerService : ICareerService
 {
     private readonly ICareerRepository _careerRepository;
 
-   // private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IHttpClientFactory _httpClientFactory;
 
-    public CareerService(ICareerRepository careerRepository/*, IHttpClientFactory httpClientFactory*/)
+    public CareerService(ICareerRepository careerRepository, IHttpClientFactory httpClientFactory)
     {
         _careerRepository = careerRepository;
-       // _httpClientFactory = httpClientFactory;
+        _httpClientFactory = httpClientFactory;
     }
 
-    //aqui
+
     public async Task AddItemCareerAsync(string careerId, CareerItemRequestDTO careerItemDTO)
     {
-        //var client = _httpClientFactory.CreateClient("Course");
+        var client = _httpClientFactory.CreateClient("Course");
 
         if (!ObjectId.TryParse(careerId, out ObjectId careerObjectId))
             throw new ArgumentException("The ID is not in ObjectId format", nameof(careerId));
@@ -32,11 +33,13 @@ public class CareerService : ICareerService
         if (!ObjectId.TryParse(careerItemDTO.CourseId, out ObjectId courseObjectId))
             throw new ArgumentException("The ID is not in ObjectId format", nameof(careerItemDTO.CourseId));
 
-        //var course = client.GetFromJsonAsync<Course>($"api/Course/get-by-title/{careerItemDTO.Title}") 
-        //    ?? throw new Exception("Register not found!");
+        var course = await client.GetFromJsonAsync<CourseResponseDTO>($"api/Course/id/{careerItemDTO.CourseId}") 
+            ?? throw new Exception("Register not found!");
 
         if (careerItemDTO.Order <= 0)
             throw new ArgumentException("Order must be greater than 0!");
+
+        var career = await _careerRepository.GetCareerByIdAsync(careerObjectId);
 
         try
         {
@@ -46,7 +49,7 @@ public class CareerService : ICareerService
 
             var item = new CareerItem(careerObjectId, courseObjectId, careerItemDTO.Title, careerItemDTO.Description, careerItemDTO.Order);
 
-            await _careerRepository.AddItemCareerAsync(item);
+            await _careerRepository.AddItemCareerAsync(item, course.DurationInMinutes, career);
         }
         catch (KeyNotFoundException) { throw; }
         catch (ArgumentException) { throw; }

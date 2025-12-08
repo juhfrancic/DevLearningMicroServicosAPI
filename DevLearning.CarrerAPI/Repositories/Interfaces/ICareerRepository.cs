@@ -13,7 +13,7 @@ namespace DevLearning.CareerAPI.Repositories.Interfaces
         Task CreateCareerAsync(Career career);
         Task UpdateCareerAsync(Career career);
         Task UpdateActiveCareerAsync(ObjectId careerId);
-        Task AddItemCareerAsync(CareerItem careerItem);
+        Task AddItemCareerAsync(CareerItem careerItem, int duration,Career career);
         Task<bool> RemoveItemCareerAsync(ObjectId careerId, ObjectId courseId);
         Task RemoveItemByCourseAsync(ObjectId careerId,ObjectId courseId);
         Task<List<ObjectId>> GetItemByCourseAsync(ObjectId courseId);
