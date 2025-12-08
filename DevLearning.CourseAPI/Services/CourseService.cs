@@ -1,6 +1,9 @@
 ﻿using DevLearning.AuthorAPI.Repositories;
+using DevLearning.CategoryAPI.Repositories.Interfaces;
 using DevLearning.CourseAPI.Repositories;
 using DevLearning.CourseAPI.Services.Interfaces;
+using DevLearning.StudentAPI.Repositories;
+using Domain.Models;
 using Domain.Models.DTOs.Course;
 
 namespace DevLearning.CourseAPI.Services
@@ -9,55 +12,55 @@ namespace DevLearning.CourseAPI.Services
     {
 
         private CourseRepository _courseRepository;
-        //private CategoryRepository _categoryRepository;
+        private ICategoryRepository _categoryRepository;
         private AuthorRepository _authorRepository;
-        //private StudentRepository _studentRepository;
+        private StudentRepository _studentRepository;
 
-        public CourseService(CourseRepository courseRepository, AuthorRepository authorRepository)
+        public CourseService(CourseRepository courseRepository, ICategoryRepository categoryRepository, AuthorRepository authorRepository, StudentRepository studentRepository)
         {
             _courseRepository = courseRepository;
-            //_categoryRepository = categoryRepository;
+            _categoryRepository = categoryRepository;
             _authorRepository = authorRepository;
-            //_studentRepository = studentRepository;
+            _studentRepository = studentRepository;
         }
 
-        //public async Task CreateCourseAsync(CourseRequestDTO course)
-        //{
-        //    try
-        //    {
-        //        var verifyTitle = await _courseRepository.GetOneCourseByTitleAsync(course.Title);
-        //        var verifyAuthor = await _authorRepository.GetAuthorByIdAsync(course.AuthorId);
-        //        //var verifyCategory = await _categoryRepository.GetCategoryByIdAsync(course.CategoryId);
-        //        if (verifyTitle is null)
-        //        {
-        //            if (verifyAuthor is not null)
-        //            {
-        //                if (verifyCategory is not null)
-        //                {
-        //                    var newCourse = new Course(Guid.NewGuid(), course.Tag, course.Title, course.Summary, course.Url, course.Level, course.DurationInMinutes, DateTime.UtcNow, DateTime.UtcNow, true, false, false, course.AuthorId, course.CategoryId, course.Tags);
-        //                    await _courseRepository.CreateCourseAsync(newCourse);
-        //                }
-        //                else
-        //                {
-        //                    throw new Exception("Categoria inexistente!");
-        //                }
-        //            }
-        //            else
-        //            {
-        //                throw new Exception("Autor inexistente!");
-        //            }
-        //        }
-        //        else
-        //        {
-        //            throw new Exception("Título de curso já existente!");
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw new Exception(ex.Message);
-        //    }
+        public async Task CreateCourseAsync(CourseRequestDTO course)
+        {
+            try
+            {
+                var verifyTitle = await _courseRepository.GetOneCourseByTitleAsync(course.Title);
+                var verifyAuthor = await _authorRepository.GetAuthorByIdAsync(course.AuthorId);
+                var verifyCategory = await _categoryRepository.GetCategoryByIdAsync(course.CategoryId);
+                if (verifyTitle is null)
+                {
+                    if (verifyAuthor is not null)
+                    {
+                        if (verifyCategory is not null)
+                        {
+                            var newCourse = new Course(Guid.NewGuid(), course.Tag, course.Title, course.Summary, course.Url, course.Level, course.DurationInMinutes, DateTime.UtcNow, DateTime.UtcNow, true, false, false, course.AuthorId, course.CategoryId, course.Tags);
+                            await _courseRepository.CreateCourseAsync(newCourse);
+                        }
+                        else
+                        {
+                            throw new Exception("Categoria inexistente!");
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("Autor inexistente!");
+                    }
+                }
+                else
+                {
+                    throw new Exception("Título de curso já existente!");
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
 
-        //}
+        }
 
         public async Task<CourseResponseDTO> DeleteCourseByTitleAsync(string title)
         {
@@ -107,29 +110,29 @@ namespace DevLearning.CourseAPI.Services
             }
         }
 
-        //public async Task UpdateActiveCourseByTitleAsync(string title, CourseActiveDTO update)
-        //{
-        //    try
-        //    {
-        //        var courseStorage = await _courseRepository.GetOneCourseByTitleAsync(title);
-        //        if(courseStorage is null)
-        //        {
-        //            throw new Exception("Você não modificar um curso inexistente!");
-        //        }
-        //        var verifyStudentCourse = await _studentRepository.GetCountStudentCourse(courseStorage.CourseId);
+        public async Task UpdateActiveCourseByTitleAsync(string title, CourseActiveDTO update)
+        {
+            try
+            {
+                var courseStorage = await _courseRepository.GetOneCourseByTitleAsync(title);
+                if(courseStorage is null)
+                {
+                    throw new Exception("Você não modificar um curso inexistente!");
+                } 
+                    var verifyStudentCourse = await _studentRepository.GetCountStudentCourse(courseStorage.CourseId);
 
-        //        if (verifyStudentCourse > 0)
-        //        {
-        //            throw new Exception("Você não pode inativar um curso com alunos nele!");
-        //        }
+                if (verifyStudentCourse > 0)
+                {
+                    throw new Exception("Você não pode inativar um curso com alunos nele!");
+                }
 
-        //        await _courseRepository.UpdateActiveCourseByTitleAsync(title, update.Active, DateTime.UtcNow);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw new Exception(ex.Message);
-        //    }
-        //}
+                await _courseRepository.UpdateActiveCourseByTitleAsync(title, update.Active, DateTime.UtcNow);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
 
         public async Task<CourseResponseDTO> GetOneCourseByIdAsync(string id)
         {

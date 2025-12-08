@@ -1,7 +1,7 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 
-namespace Infrastructure.Data
+namespace Infrastructure.Data.SQL.Contexts
 {
     public class ConnectionDB
     {
