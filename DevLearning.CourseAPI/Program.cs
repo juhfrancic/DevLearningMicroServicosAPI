@@ -23,7 +23,7 @@ builder.Services.AddHttpClient("Student", client =>
     client.BaseAddress = new Uri("https://localhost:7263");
 });
 
-builder.Services.AddSingleton<MongoDbContext>();
+builder.Services.AddSingleton<MongoDbContextCourse>();
 builder.Services.AddScoped<CourseRepository>();
 builder.Services.AddScoped<CourseService>();
 

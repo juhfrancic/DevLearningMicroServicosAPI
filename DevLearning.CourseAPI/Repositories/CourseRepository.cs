@@ -9,7 +9,7 @@ using MongoDB.Driver;
 namespace DevLearning.CourseAPI.Repositories;
 
 public class CourseRepository(
-    MongoDbContext mongoDbContext
+    MongoDbContextCourse mongoDbContext
     ) : ICourseRepository
 {
     private readonly IMongoCollection<Course> _courseCollection = mongoDbContext.Courses;
@@ -34,12 +34,12 @@ public class CourseRepository(
         throw new NotImplementedException();
     }
 
-    public async Task<List<CourseResponseDTO>> GetAllCoursesAsync(string category)
+    public async Task<List<CourseResponseDTO>> GetAllCoursesAsync()
     {
         try
         {
             var courses = await _courseCollection
-                .Find(course => course.CategoryName == category)
+                .Find(_ => true)
                 .ToListAsync();
 
             return [.. courses.Select(c => c.ToDto())];

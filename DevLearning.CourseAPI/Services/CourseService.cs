@@ -1,6 +1,8 @@
 ﻿using DevLearning.CourseAPI.Repositories;
 using DevLearning.CourseAPI.Services.Interfaces;
 using Domain.Extensions;
+using Domain.Models.DTOs.Author;
+using Domain.Models.DTOs.Category;
 using Domain.Models.DTOs.Course;
 using Domain.Models.DTOs.Student;
 using MongoDB.Bson;
@@ -14,32 +16,32 @@ public class CourseService(
     private readonly CourseRepository _courseRepository = courseRepository;
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
 
-    public async Task CreateCourseAsync(CourseRequestDTO course)
+    public async Task CreateCourseAsync(CourseRequestDTO course)    
     {
         try
         {
-            //var authorClient = _httpClientFactory.CreateClient("Author");
-            //var categoryClient = _httpClientFactory.CreateClient("Category");
+            var authorClient = _httpClientFactory.CreateClient("Author");
+            var categoryClient = _httpClientFactory.CreateClient("Category");
 
-            //var verifyAuthor = await authorClient
-            //    .GetFromJsonAsync<AuthorResponseDTO>(course.AuthorId.ToString());
+            var verifyAuthor = await authorClient
+                .GetFromJsonAsync<AuthorResponseDTO>($"/api/author/{course.AuthorId.ToString()}");
 
-            //var verifyCategory = await categoryClient
-            //    .GetFromJsonAsync<CategoryResponseDTO>(course.CategoryId.ToString());
+            var verifyCategory = await categoryClient
+                .GetFromJsonAsync<CategoryResponseDTO>($"api/category/{course.CategoryId.ToString()}");
 
-            //var verifyTitle = await _courseRepository
-            //    .GetOneCourseByTitleAsync(course.Title);
+            var verifyTitle = await _courseRepository
+                .GetOneCourseByTitleAsync(course.Title);
 
-            //if (verifyTitle is not null)
-            //    throw new Exception("Título de curso já existente!");
+            if (verifyTitle is not null)
+                throw new Exception("Título de curso já existente!");
 
-            //if (verifyAuthor is null)
-            //    throw new Exception("Autor inexistente!");
+            if (verifyAuthor is null)
+                throw new Exception("Autor inexistente!");
 
-            //if (verifyCategory is null)
-            //    throw new Exception("Categoria inexistente!");
+            if (verifyCategory is null)
+                throw new Exception("Categoria inexistente!");
 
-            await _courseRepository.CreateCourseAsync(course.ToEntity());
+            await _courseRepository.CreateCourseAsync(course.ToEntity(verifyAuthor.Name, verifyCategory.Title));
 
         }
         catch (Exception ex)
@@ -60,11 +62,11 @@ public class CourseService(
         }
     }
 
-    public async Task<List<CourseResponseDTO>> GetAllCoursesAsync(string category)
+    public async Task<List<CourseResponseDTO>> GetAllCoursesAsync()
     {
         try
         {
-            return await _courseRepository.GetAllCoursesAsync(category);
+            return await _courseRepository.GetAllCoursesAsync();
         }
         catch (Exception ex)
         {

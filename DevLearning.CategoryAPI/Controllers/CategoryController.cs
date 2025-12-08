@@ -53,7 +53,7 @@ public class CategoryController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<CategoryResponseDTO>> GetById(Guid id)
+    public async Task<ActionResult<CategoryResponseDTO>> GetById(string id)
     {
         try
         {

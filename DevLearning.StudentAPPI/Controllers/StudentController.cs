@@ -2,141 +2,140 @@
 using Domain.Models.DTOs.Student;
 using Microsoft.AspNetCore.Mvc;
 
-namespace DevLearning.StudentAPI.Controllers
+namespace DevLearning.StudentAPI.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class StudentController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class StudentController : ControllerBase
+    private readonly StudentService _studentService;
+
+    public StudentController(StudentService studentService)
     {
-        private readonly StudentService _studentService;
+        _studentService = studentService;
+    }
 
-        public StudentController(StudentService studentService)
+    [HttpPost()]
+    public async Task CreateStudent([FromBody] StudentRequestDTO student)
+    {
+        try
         {
-            _studentService = studentService;
+            await _studentService.CreateStudent(student);
+            Created();
         }
-
-        [HttpPost()]
-        public async Task CreateStudent([FromBody] StudentRequestDTO student)
+        catch (Exception ex)
         {
-            try
-            {
-                await _studentService.CreateStudent(student);
-                Created();
-            }
-            catch (Exception ex)
-            {
-                StatusCode(500, new { error = ex.Message });
-            }
+            StatusCode(500, new { error = ex.Message });
         }
+    }
 
-        [HttpPost("/api/students/{studentId}/courses/{coursesId}")]
-        public async Task<ActionResult> InsertStudentCourse([FromBody] StudentRequestInsertCourseDTO student, string studentId, string courseId)
+    [HttpPost("/api/students/{studentId}/courses/{coursesId}")]
+    public async Task<ActionResult> InsertStudentCourse([FromBody] StudentRequestInsertCourseDTO student, string studentId, string courseId)
+    {
+        try
         {
-            try
-            {
-                await _studentService.InsertStudentCourse(studentId, courseId, student);
-                return StatusCode(201, new { message = "Estudante adicionado com sucesso no curso" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = ex.Message });
-            }
+            await _studentService.InsertStudentCourse(studentId, courseId, student);
+            return StatusCode(201, new { message = "Estudante adicionado com sucesso no curso" });
         }
-
-        [HttpPut("{studentId}")]
-        public async Task<ActionResult> UpdateStudent([FromBody] StudentRequestUpdateDTO student, string studentId)
+        catch (Exception ex)
         {
-            try
-            {
-                await _studentService.UpdateStudent(student, studentId);
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = ex.Message });
-            }
+            return StatusCode(500, new { error = ex.Message });
         }
+    }
 
-        [HttpGet("all")]
-        public async Task<ActionResult<List<StudentResponseDTO>>> GetAllStudents()
+    [HttpPut("{studentId}")]
+    public async Task<ActionResult> UpdateStudent([FromBody] StudentRequestUpdateDTO student, string studentId)
+    {
+        try
         {
-            try
-            {
-                var students = await _studentService.GetAllStudents();
-                if (students is null && students.Count == 0)
-                    return NotFound();
-                else
-                    return Ok(students);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = ex.Message });
-            }
+            await _studentService.UpdateStudent(student, studentId);
+            return NoContent();
         }
-
-        [HttpGet("{id}")]
-        public async Task<ActionResult> GetStudentById(string id)
+        catch (Exception ex)
         {
-            try
-            {
-                var student = await _studentService.GetStudentById(id);
-                if (student is null)
-                    return NotFound();
-                else
-                    return Ok(student);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = ex.Message });
-            }
+            return StatusCode(500, new { error = ex.Message });
         }
+    }
 
-        [HttpGet("Document/{document}")]
-        public async Task<ActionResult> GetStudentByDocument(string document)
+    [HttpGet("all")]
+    public async Task<ActionResult<List<StudentResponseDTO>>> GetAllStudents()
+    {
+        try
         {
-            try
-            {
-                var studentStorage = await _studentService.GetStudentByDocument(document);
-                if (studentStorage is null)
-                    return NotFound();
-                else
-                    return Ok(studentStorage);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = ex.Message });
-            }
+            var students = await _studentService.GetAllStudents();
+            if (students is null && students.Count == 0)
+                return NotFound();
+            else
+                return Ok(students);
         }
-
-        [HttpGet("Email/{email}")]
-        public async Task<ActionResult> GetStudentByEmail(string email)
+        catch (Exception ex)
         {
-            try
-            {
-                var studentStorage = await _studentService.GetStudentByEmail(email);
-                if (studentStorage is null)
-                    return NotFound();
-                else
-                    return Ok(studentStorage);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = ex.Message });
-            }
+            return StatusCode(500, new { error = ex.Message });
         }
+    }
 
-        [HttpPut("students/{studentId}/courses/{courseId}")]
-        public async Task<ActionResult> UpdateStudentCourse([FromBody] StudentCourseRequestUpdateDTO student, string studentId, string courseId)
+    [HttpGet("{id}")]
+    public async Task<ActionResult> GetStudentById(string id)
+    {
+        try
         {
-            try
-            {
-                await _studentService.UpdateStudentCourse(studentId, courseId, student);
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = ex.Message });
-            }
+            var student = await _studentService.GetStudentById(id);
+            if (student is null)
+                return NotFound();
+            else
+                return Ok(student);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    [HttpGet("Document/{document}")]
+    public async Task<ActionResult> GetStudentByDocument(string document)
+    {
+        try
+        {
+            var studentStorage = await _studentService.GetStudentByDocument(document);
+            if (studentStorage is null)
+                return NotFound();
+            else
+                return Ok(studentStorage);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    [HttpGet("Email/{email}")]
+    public async Task<ActionResult> GetStudentByEmail(string email)
+    {
+        try
+        {
+            var studentStorage = await _studentService.GetStudentByEmail(email);
+            if (studentStorage is null)
+                return NotFound();
+            else
+                return Ok(studentStorage);
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
+        }
+    }
+
+    [HttpPut("students/{studentId}/courses/{courseId}")]
+    public async Task<ActionResult> UpdateStudentCourse([FromBody] StudentCourseRequestUpdateDTO student, string studentId, string courseId)
+    {
+        try
+        {
+            await _studentService.UpdateStudentCourse(studentId, courseId, student);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { error = ex.Message });
         }
     }
 }

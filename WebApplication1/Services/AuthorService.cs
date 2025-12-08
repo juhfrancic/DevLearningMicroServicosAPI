@@ -29,11 +29,11 @@ namespace DevLearning.AuthorAPI.Services
                 throw;
             }
         }
-        public async Task<AuthorResponseDTO> GetAuthorByIdAsync(Guid id)
+        public async Task<AuthorResponseDTO> GetAuthorByIdAsync(string id)
         {
             try
             {
-                return await _authorRepository.GetAuthorByIdAsync(id);
+                return await _authorRepository.GetAuthorByIdAsync(Guid.Parse(id));
             }
             catch(Exception ex)
             {

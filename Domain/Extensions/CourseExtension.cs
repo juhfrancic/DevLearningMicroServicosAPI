@@ -5,7 +5,7 @@ namespace Domain.Extensions;
 
 public static class CourseExtension
 {
-    public static Course ToEntity(this CourseRequestDTO dto)
+    public static Course ToEntity(this CourseRequestDTO dto, string nameAuthor, string nameCategory)
     {
         if (dto is null)
             return null;
@@ -23,7 +23,9 @@ public static class CourseExtension
                  false,
                  false,
                  dto.AuthorId,
+                 nameAuthor,
                  dto.CategoryId,
+                 nameCategory,
                  dto.Tags
                  );
     }

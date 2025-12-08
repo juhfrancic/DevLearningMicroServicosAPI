@@ -13,7 +13,7 @@ public class StudentRepository : IStudentRepository
     private readonly IMongoCollection<Student> _students;
     private readonly IMongoCollection<StudentCourse> _studentCourses;
     //private readonly IMongoCollection<Course> _courses;
-    public StudentRepository(MongoDbContext mongoClient)
+    public StudentRepository(MongoDbContextStudent mongoClient)
     {
         _students = mongoClient.Students;
         _studentCourses = mongoClient.StudentCourses;
